@@ -280,14 +280,29 @@
         .alert-table tr:hover {
             background-color: rgba(241, 245, 249, 0.7);
         }
+        /* Ensure sticky column also gets hover background */
+        .alert-table tr:hover td:last-child {
+            background-color: rgba(241, 245, 249, 0.7); /* Same hover color */
+        }
         /* 操作列样式 - 固定在右侧 */
         .alert-table th:last-child,
         .alert-table td:last-child {
             position: sticky;
             right: 0;
-            background-color: var(--card-background); /* 设置背景色以覆盖滚动内容 */
+            /* background-color: var(--card-background); */ /* Removed specific background for td */
             /* Optional: Add a subtle shadow to indicate it's sticky */
             /* box-shadow: -2px 0 5px rgba(0, 0, 0, 0.05); */
+        }
+        /* Ensure sticky header uses the correct background */
+        .alert-table th:last-child {
+             background-color: var(--background-color); /* Match general th background */
+        }
+        /* Ensure sticky data cells use card background (or hover color) */
+        .alert-table td:last-child {
+            background-color: var(--card-background); /* Default background for sticky td */
+        }
+        .alert-table tr:hover td:last-child {
+             background-color: rgba(241, 245, 249, 0.7); /* Keep hover color override */
         }
         /* 确保操作列单元格内容靠左对齐，并有足够内边距 */
         .alert-table td:last-child {
@@ -571,11 +586,6 @@
         }
         .modal.show .modal-content {
             transform: scale(1);
-        }
-        /* 卡片悬停效果 */
-        .table-container:hover {
-            box-shadow: var(--shadow);
-            transition: box-shadow 0.3s;
         }
         /* 移除搜索区域悬停效果 */
         .search-area:hover {
