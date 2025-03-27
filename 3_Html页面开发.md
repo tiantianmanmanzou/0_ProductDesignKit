@@ -120,167 +120,245 @@ alwaysApply: false
     *   目标是确保在预览生成的 HTML 页面时，所有功能按钮点击后都有可见的反馈或交互效果。
 *   **Bootstrap JS:** 如果使用了需要 JavaScript 交互的 Bootstrap 组件（如 Modal, Dropdown, Tab），确保已正确引入 Bootstrap 的 JS Bundle 文件。
 
-## 8. 特定页面布局规范 (参考样例)
+## 8. 常用的DataTable页面规范
 
-*   **顶部内容区域 (包含搜索与操作):**
-    *   通常位于页面标题下方（或导航栏下方），在主要内容（如表格）上方。
-    *   **强制要求:** 搜索区域 (`.search-area`) 和页面级操作按钮区域 (`.top-actions`) **必须** 放置在 **同一个容器** 内（例如 `<div class="card p-3 top-content-area">`）。
-    *   **布局实现:**
-        *   **推荐:** 在父容器内使用 **Bootstrap Grid (`row` 和 `col-*`)**。这是最稳定可靠的方式。
-        *   **方法:** 使用 `<div class="row">` 包裹搜索区和按钮区。将搜索区放入一个 `col-*`（如 `col-md-8`），将按钮区放入另一个 `col-*`（如 `col-md-4`）。在按钮区的 `col-*` 上添加 `d-flex justify-content-end` 使按钮在该列内右对齐。
-    *   **目标:** 确保搜索区域和操作按钮区域在 **同一行显示，避免换行**，且搜索区居左，按钮区居右。
-    *   **示例 (Grid 布局):**
-        ```html
-        <div class="card p-3 top-content-area mb-4">
-            <div class="row w-100 align-items-end">
-                <div class="col-md-8 col-lg-9 search-area">
-                    <!-- 搜索表单 -->
-                    <form class="filter-form">
-                        <!-- ... form content ... -->
-                    </form>
-                </div>
-                <div class="col-md-4 col-lg-3 top-actions d-flex justify-content-end">
-                    <!-- 页面级按钮 -->
-                    <button class="btn btn-primary ms-2">新增</button>
-                    <button class="btn btn-secondary ms-2">导出</button>
-                </div>
-            </div>
-        </div>
-        ```
-*   **搜索区域 (`.search-area`):**
-    *   位于顶部内容区域的左侧（由 Grid 列定义）。
-    *   包含表单元素（输入框、下拉选择、日期选择器等）和搜索/重置按钮。
-    *   使用 Bootstrap 的表单和按钮组件。
-    *   **注意:** 为了保持单行布局，应合理控制搜索条件的数量。如果搜索条件过多，考虑使用更紧凑的布局或允许用户在请求时指定所需的搜索字段数量（例如，明确说明需要几个输入框）。
-*   **页面级操作按钮区域 (`.top-actions`):**
-    *   位于顶部内容区域的右侧。
-    *   包含页面级别的主要操作按钮（如 新增、批量删除、导入、导出等）。
-    *   使用 Bootstrap 按钮组件。
-*   **表格区域 (`.table-container`):**
-    *   位于搜索和操作区域下方。
-    *   使用 Bootstrap 的表格样式 (`.table`, `.table-hover` 等)。
-    *   包含表头 (`<thead>`) 和表体 (`<tbody>`)。
-    *   操作列（如 查看、编辑、删除）通常放在表格最右侧。
-*   **分页区域 (`.pagination-container`):**
-    *   位于表格下方。
-    *   包含分页信息（总条数、每页显示数量）和分页控件。
-    *   使用 Bootstrap 的分页组件 (`.pagination`)。
-    *   通常右对齐。
+### 8.1 设计理念
+1. **专业简洁:** 整体界面追求干净、专业的外观，适合数据密集型的后台管理系统
+2. **数据中心:** 布局和样式优先考虑数据的清晰展示和高效操作
+3. **一致性:** 通过 CSS 变量和统一的组件样式，确保视觉元素的一致性
+4. **现代感:** 使用适度的圆角、阴影和过渡效果，提升现代感和用户体验
+
+### 8.2 核心配色方案
+1. **主色调 (Primary):**
+   - `--primary-color: #3b82f6` / `#477BE3` (蓝色，用于按钮、链接、激活状态、焦点指示)
+   - `--primary-hover: #2563eb` (主色悬停/加深)
+   - `--primary-light-color: #E7F0FF` (浅蓝色，用于悬停背景或辅助元素)
+
+2. **功能色:**
+   - `--success-color: #10b981` / `#00B86B` (绿色，用于成功状态、已处理徽章)
+   - `--danger-color: #ef4444` / `#F54E4E` (红色，用于错误、严重告警、删除操作)
+   - `--warning-color: #f59e0b` / `#FF9900` (橙色，用于警告状态/告警)
+   - `--info-color: #6b7280` (灰色，用于提示信息、次要状态)
+
+3. **背景色:**
+   - `--background-color: #f8fafc` / `#F4F6F8` (页面整体背景，浅灰色)
+   - `--card-background: #ffffff` (卡片、表格、输入框、弹窗等内容区域背景，白色)
+   - `--table-header-background: #FAFAFA` (表头背景，极浅灰色)
+   - `--table-row-hover-background: #F0F5FF` (表格行悬停背景，浅蓝色)
+
+4. **文本色:**
+   - `--text-primary: #1e293b` / `#333333` (主要文字，深灰色/黑色)
+   - `--text-secondary: #64748b` / `#666666` (次要文字、标签、表头文字，灰色)
+   - `--text-placeholder: #999999` (输入框占位文字，浅灰色)
+
+5. **边框色:**
+   - `--border-color: #e2e8f0` / `#E0E0E0` (用于卡片、表格、输入框、分隔线等)
+
+6. **阴影:**
+   - `--shadow-sm`, `--shadow`, `--shadow-md` (定义不同层级的阴影，用于卡片、导航栏、弹窗等提升层次感)
+
+7. **圆角:**
+   - `--radius-sm: 0.375rem` / `4px` (小圆角，用于按钮、输入框、徽章等)
+   - `--radius: 0.5rem` / `4px` (中等圆角，用于卡片等)
+
+### 8.3 页面整体布局
+1. **布局顺序（从上到下）：**
+   - 导航栏
+   - 面包屑导航
+   - 页面标题
+   - 顶部内容区域（搜索区域 + 按钮区域）
+   - 数据表格区域
+   - 分页区域
+
+### 8.4 面包屑导航规范
+1. **样式要求：**
+   - 背景色：浅灰色背景 (`bg-light`)
+   - 内边距：垂直方向 0.5rem (`py-2`)，水平方向 1rem (`px-3`)
+   - 下边距：0.75rem (`mb-3`)
+   - 文字颜色：
+     * 链接：主色 (`--primary-color`)
+     * 当前页：次要文字颜色 (`--text-secondary`)
+   - 分隔符：使用 Bootstrap 默认分隔符
+
+2. **结构示例：**
+   ```html
+   <nav aria-label="breadcrumb" class="bg-light py-2 px-3 mb-3">
+     <ol class="breadcrumb mb-0">
+       <li class="breadcrumb-item"><a href="/">首页</a></li>
+       <li class="breadcrumb-item"><a href="/module">模块名称</a></li>
+       <li class="breadcrumb-item active" aria-current="page">当前页面</li>
+     </ol>
+   </nav>
+   ```
+
+3. **响应式处理：**
+   - 大中屏：完整显示所有层级
+   - 小屏：保持完整显示，不截断
+   - 超小屏：允许自动换行显示
+
+### 8.5 页面标题规范
+1. **样式要求：**
+   - 字体大小：20px (`fs-4`)
+   - 字重：加粗 (`fw-bold`)
+   - 颜色：主要文字颜色 (`--text-primary`)
+   - 上下边距：上方 1rem (`mt-4`)，下方 1.5rem (`mb-4`)
+   - 行高：1.2 (`lh-sm`)
+
+2. **结构示例：**
+   ```html
+   <div class="d-flex justify-content-between align-items-center mt-4 mb-4">
+     <h1 class="fs-4 fw-bold mb-0">页面标题</h1>
+     <!-- 可选：标题右侧额外操作区 -->
+     <div class="title-actions">
+       <!-- 放置与标题同级的操作按钮 -->
+     </div>
+   </div>
+   ```
+
+3. **标题规范：**
+   - 简洁明了，一般不超过10个字
+   - 应与面包屑最后一级保持一致
+   - 可选择性添加标题右侧操作区
+   - 禁止在标题中使用HTML标签或特殊字符
+
+4. **响应式处理：**
+   - 大中屏：标题与操作区并排显示
+   - 小屏：标题与操作区上下排列
+
+### 8.6 搜索区域规范
+1. **布局要求：**
+   - 位置：顶部内容区域左侧
+   - 响应式：
+     * 大屏(≥992px)：每行4个条件
+     * 中屏(≥768px)：每行3个条件
+     * 小屏(≥576px)：每行2个条件
+     * 超小屏(<576px)：每行1个条件
+
+2. **搜索条件项：**
+   - 使用 Bootstrap 表单组件
+   - 每个条件项结构：
+     ```html
+     <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+         <label class="form-label">标签文本</label>
+         <input type="text" class="form-control">
+     </div>
+     ```
+
+3. **搜索/重置按钮：**
+   - 位置：搜索条件下方
+   - 对齐：右对齐
+   - 结构：
+     ```html
+     <div class="col-12">
+         <div class="d-flex gap-2 justify-content-end mt-3">
+             <button type="submit" class="btn btn-primary">搜索</button>
+             <button type="reset" class="btn btn-secondary">重置</button>
+         </div>
+     </div>
+     ```
+
+4. **字号规范：**
+   - 标签文字：14px (`fs-6`)
+   - 输入框文字：14px
+   - 输入框占位符：14px，颜色使用 `--text-placeholder`
+   - 搜索/重置按钮：14px
+
+### 8.7 按钮区域规范
+1. **位置：** 顶部内容区域右侧
+2. **内容：** 页面级主要操作按钮（新增、批量删除、导入、导出等）
+3. **响应式：**
+   - 大中屏：右对齐
+   - 小屏：独占一行，居中对齐
+4. **字号规范：**
+   - 页面级主要按钮（新增、批量删除等）：14px
+   - 表格内操作按钮：14px
+   - 次要按钮（如导入、导出）：14px
+   - 按钮内图标：14px，与文字对齐
+5. **间距规范：**
+   - 按钮之间的间距：0.5rem (`gap-2`)
+   - 按钮组与其他元素的间距：1rem (`mt-3`, `mb-3`)
+   - 按钮内部文字与图标的间距：0.25rem (`gap-1`)
+   - 结构示例：
+     ```html
+     <div class="d-flex gap-2 justify-content-end mb-3">
+       <button type="button" class="btn btn-primary d-inline-flex gap-1 align-items-center">
+         <i class="bi bi-plus"></i>
+         <span>新增</span>
+       </button>
+       <button type="button" class="btn btn-danger d-inline-flex gap-1 align-items-center">
+         <i class="bi bi-trash"></i>
+         <span>批量删除</span>
+       </button>
+     </div>
+     ```
+
+### 8.8 数据表格区域规范
+1. **表格样式：**
+   - 使用 Bootstrap 表格样式
+   - 添加悬停效果：`.table-hover`
+   - 添加边框：`.table-bordered`
+   - 紧凑样式（可选）：`.table-sm`
+
+2. **表格结构：**
+   ```html
+   <div class="table-responsive">
+     <table class="table table-hover table-bordered">
+       <thead>
+         <tr>
+           <th><input type="checkbox" class="form-check-input"></th>
+           <th>列标题1</th>
+           <th>列标题2</th>
+           <!-- ... -->
+           <th>操作</th>
+         </tr>
+       </thead>
+       <tbody>
+         <tr>
+           <td><input type="checkbox" class="form-check-input"></td>
+           <td>数据1</td>
+           <td>数据2</td>
+           <!-- ... -->
+           <td>
+             <div class="action-buttons">
+               <a href="#" class="text-primary">查看</a>
+               <a href="#" class="text-primary">编辑</a>
+               <a href="#" class="text-danger">删除</a>
+             </div>
+           </td>
+         </tr>
+       </tbody>
+     </table>
+   </div>
+   ```
+
+### 8.9 分页区域规范
+1. **位置：** 表格下方
+2. **布局：**
+   ```html
+   <div class="d-flex justify-content-between align-items-center mt-3">
+     <div class="pagination-info">
+       共 <span>100</span> 条记录，每页
+       <select class="form-select form-select-sm d-inline-block w-auto">
+         <option>10</option>
+         <option>20</option>
+         <option>50</option>
+       </select>
+       条
+     </div>
+     <nav aria-label="Page navigation">
+       <ul class="pagination mb-0">
+         <li class="page-item"><a class="page-link" href="#">上一页</a></li>
+         <li class="page-item"><a class="page-link" href="#">1</a></li>
+         <li class="page-item active"><a class="page-link" href="#">2</a></li>
+         <li class="page-item"><a class="page-link" href="#">3</a></li>
+         <li class="page-item"><a class="page-link" href="#">下一页</a></li>
+       </ul>
+     </nav>
+   </div>
+   ```
 
 ## 9. 其他
 
 *   **注释:** 对非显而易见的 HTML 结构、复杂的 CSS 规则或 JavaScript 函数添加注释。
 *   **性能:** 虽然是单文件，但仍需注意避免非常大的图片或不必要的复杂计算。
 *   **测试:** 在主流浏览器（Chrome, Firefox, Edge, Safari）和不同屏幕尺寸下测试页面显示和功能。
-
-## 10. 推荐样式风格 (基于 tablepage.html 样例)
-
-以下样式规范总结自 `tablepage.html` 样例，推荐在开发数据密集型后台管理页面时参考，以保持视觉风格统一和专业性。
-
-**1. 整体风格与理念**
-
-*   **专业简洁:** 整体界面追求干净、专业的外观，适合数据密集型的后台管理系统。
-*   **数据中心:** 布局和样式优先考虑数据的清晰展示和高效操作。
-*   **一致性:** 通过 CSS 变量和统一的组件样式，确保视觉元素的一致性。
-*   **现代感:** 使用适度的圆角、阴影和过渡效果，提升现代感和用户体验。
-
-**2. 核心配色方案 (通过 CSS 变量定义)**
-
-*   **主色调 (Primary):**
-    *   `--primary-color: #3b82f6` / `#477BE3` (蓝色，用于按钮、链接、激活状态、焦点指示)
-    *   `--primary-hover: #2563eb` (主色悬停/加深)
-    *   `--primary-light-color: #E7F0FF` (浅蓝色，用于悬停背景或辅助元素)
-*   **功能色:**
-    *   `--success-color: #10b981` / `#00B86B` (绿色，用于成功状态、已处理徽章)
-    *   `--danger-color: #ef4444` / `#F54E4E` (红色，用于错误、严重告警、删除操作)
-    *   `--warning-color: #f59e0b` / `#FF9900` (橙色，用于警告状态/告警)
-    *   `--info-color: #6b7280` (灰色，用于提示信息、次要状态)
-*   **背景色:**
-    *   `--background-color: #f8fafc` / `#F4F6F8` (页面整体背景，浅灰色)
-    *   `--card-background: #ffffff` (卡片、表格、输入框、弹窗等内容区域背景，白色)
-    *   `--table-header-background: #FAFAFA` (表头背景，极浅灰色)
-    *   `--table-row-hover-background: #F0F5FF` (表格行悬停背景，浅蓝色)
-*   **文本色:**
-    *   `--text-primary: #1e293b` / `#333333` (主要文字，深灰色/黑色)
-    *   `--text-secondary: #64748b` / `#666666` (次要文字、标签、表头文字，灰色)
-    *   `--text-placeholder: #999999` (输入框占位文字，浅灰色)
-*   **边框色:**
-    *   `--border-color: #e2e8f0` / `#E0E0E0` (用于卡片、表格、输入框、分隔线等)
-*   **阴影:**
-    *   `--shadow-sm`, `--shadow`, `--shadow-md` (定义不同层级的阴影，用于卡片、导航栏、弹窗等提升层次感)
-*   **圆角:**
-    *   `--radius-sm: 0.375rem` / `4px` (小圆角，用于按钮、输入框、徽章等)
-    *   `--radius: 0.5rem` / `4px` (中等圆角，用于卡片等)
-
-**3. 布局规范**
-
-*   **整体布局:**
-    *   主要内容区域 (`.content-container` 或直接在 `<body>` 上应用样式) 使用左右内边距 (如 `padding: 0 24px` 或 `px-4`)，上下外边距 (如 `margin: 24px 0` 或 `mt-3`)。
-*   **页面标题 (`.page-title`):** 字体较大 (如 `20px`)，加粗，位于内容区顶部。
-*   **搜索与操作区 (`.top-content-area`):**
-    *   使用 `display: flex`，`justify-content: space-between` 将搜索区和页面级操作按钮区分开。
-    *   整体放置在一个白色背景、带阴影的卡片式容器中 (`.card`)。
-    *   **搜索区 (`.search-area`):** 占据主要宽度，内部搜索表单 (`.search-form`) 也使用 `display: flex`，`flex-wrap: wrap` (允许换行)，`align-items: flex-end` (使标签和输入框底部对齐)，并通过 `gap` 控制间距。
-    *   **页面操作区 (`.top-actions`):** 放置页面级别按钮（如新建、批量操作、导出），使用 `display: flex` 和 `gap` 控制按钮间距，通常与搜索区底部对齐 (`align-self: flex-end`)。
-*   **表格区域 (`.table-container`):**
-    *   使用白色背景 (`--card-background`)、圆角 (`--radius`)、阴影 (`--shadow-sm`) 和边框 (`--border-color`) 的卡片式容器 (`.card`)。
-    *   容器内使用 `overflow: auto` 或 `.table-responsive` 处理表格内容的水平滚动。
-    *   表格 (`.table`) 宽度 `100%`。
-    *   **操作列:** 通常位于表格最右侧，可考虑使用 `position: sticky` 固定。
-*   **分页区域 (`.pagination-container`):**
-    *   使用 `display: flex`，`justify-content: flex-end` (右对齐)，`align-items: center`。
-    *   包含总条数信息 (`.page-info`)、每页显示数量选择 (`.form-select`)、页码导航 (`.pagination`) 和可选的页面跳转功能 (`.pagination-jump`)。
-    *   通过 `gap` 或 `margin` 控制各元素间距。
-
-**4. 组件样式规范**
-
-*   **表单控件 (`.form-control`, `.form-select`):**
-    *   统一高度 (如 `32px`)。
-    *   统一圆角 (`--radius-sm` / `4px`)。
-    *   统一边框 (`1px solid --border-color`)。
-    *   白色背景 (`--card-background`)。
-    *   获取焦点时 (`:focus`)，边框变为主色 (`--primary-color`)，并带有浅色阴影 (`box-shadow`)。
-    *   悬停时 (`:hover`)，边框颜色可轻微加深或变为主色。
-    *   标签 (`.form-label`) 位于控件上方，使用次要文字颜色 (`--text-secondary`)，字体略小 (如 `13px`)。
-*   **按钮 (`.btn`):**
-    *   统一圆角 (`--radius-sm` / `4px`)。
-    *   统一基础内边距 (`padding`) 和字体大小 (如 `14px`)。
-    *   **主按钮 (`.btn-primary`):** 主色背景，白色文字。
-    *   **次按钮 (`.btn-secondary`):** 白色背景，灰色文字，灰色边框。
-    *   **其他功能按钮 (`.btn-success`, `.btn-danger`, `.btn-warning`):** 使用对应的功能色背景。
-    *   **轮廓按钮 (`.btn-outline-*`):** 透明背景，对应颜色边框和文字，悬停时背景变浅色。
-    *   **表格内操作按钮 (`.action-buttons a`):**
-        *   使用链接 (`<a>`) 样式。
-        *   使用主色文字 (`--primary-color`)。
-        *   悬停时 (`:hover`) 显示下划线或文字颜色加深。
-        *   删除/驳回等危险操作使用危险色文字 (`.text-danger`)。
-        *   停止等警告操作使用警告色文字 (`.text-warning`)。
-        *   可包含图标 (`<i>`) 以增强识别性。
-*   **表格 (`.table`, `th`, `td`):**
-    *   表头 (`th`) 使用浅灰色背景 (`--table-header-background`)，次要文字颜色 (`--text-secondary`)，加粗。
-    *   单元格 (`td`) 使用白色背景，主要文字颜色 (`--text-primary`)，细边框分隔 (`border-bottom`)。
-    *   表格行悬停 (`tr:hover`) 时有浅蓝色背景 (`--table-row-hover-background`)。
-    *   复选框列 (`th:first-child`, `td:first-child`) 宽度固定且居中。
-    *   内容过长时使用 `white-space: nowrap`, `overflow: hidden`, `text-overflow: ellipsis`，并可通过 `title` 属性显示完整内容。
-*   **徽章/标签 (`.badge`):**
-    *   使用圆角 (`--radius-sm` / `4px`)。
-    *   内边距适中 (`padding`)。
-    *   字体略小 (如 `12px`)，加粗。
-    *   背景色和文字颜色根据状态使用对应的功能色或主色/次要色。对于浅色背景，确保文字颜色有足够对比度。
-*   **分页器 (`.pagination`, `.page-link`):**
-    *   页码链接 (`.page-link`) 使用白色背景，灰色边框和文字。
-    *   当前页 (`.active .page-link`) 使用主色背景和白色文字。
-    *   禁用状态 (`.disabled .page-link`) 使用更浅的背景和文字颜色。
-    *   悬停时 (`:hover`) 背景变浅蓝，文字变主色。
-*   **弹窗 (`.modal-*`):**
-    *   内容区 (`.modal-content`) 使用白色背景、圆角和阴影。
-    *   头部 (`.modal-header`) 和脚部 (`.modal-footer`) 可使用浅灰色背景 (`--table-header-background`) 和分隔线。
-    *   标题 (`.modal-title`) 字体加粗 (如 `16px`)。
-
-**5. 交互与细节**
-
-*   **悬停 (Hover):** 按钮、链接、表格行、可交互元素有明确的悬停效果。
-*   **焦点 (Focus):** 输入框、下拉框等表单控件有清晰的焦点指示。
-*   **激活 (Active):** 按钮点击时可有轻微位移效果。
-*   **滚动条:** 可选使用 `::-webkit-scrollbar-*` 美化滚动条。
-*   **响应式:** 使用 `@media` 查询调整布局（如搜索区换行、表格列堆叠 - 需配合 JS 或 `data-label`）。
