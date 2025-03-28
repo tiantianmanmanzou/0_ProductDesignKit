@@ -247,10 +247,11 @@ alwaysApply: false
 3. **搜索/重置按钮：**
    - 位置：搜索条件下方
    - 对齐：右对齐
+   - 上边距：0.5rem (`mt-2`)
    - 结构：
      ```html
      <div class="col-12">
-         <div class="d-flex gap-2 justify-content-end mt-3">
+         <div class="d-flex gap-2 justify-content-end mt-2">
              <button type="submit" class="btn btn-primary">搜索</button>
              <button type="reset" class="btn btn-secondary">重置</button>
          </div>
@@ -264,7 +265,9 @@ alwaysApply: false
    - 搜索/重置按钮：14px
 
 ### 8.7 按钮区域规范
-1. **位置：** 顶部内容区域右侧
+1. **位置：** 
+   - 顶部内容区域最右侧
+   - 与页面右边界对齐（使用 `pe-0` 移除右内边距）
 2. **内容：** 页面级主要操作按钮（新增、批量删除、导入、导出等）
 3. **响应式：**
    - 大中屏：右对齐
@@ -280,7 +283,7 @@ alwaysApply: false
    - 按钮内部文字与图标的间距：0.25rem (`gap-1`)
    - 结构示例：
      ```html
-     <div class="d-flex gap-2 justify-content-end mb-3">
+     <div class="d-flex gap-2 justify-content-end mb-3 pe-0">
        <button type="button" class="btn btn-primary d-inline-flex gap-1 align-items-center">
          <i class="bi bi-plus"></i>
          <span>新增</span>
@@ -362,3 +365,114 @@ alwaysApply: false
 *   **注释:** 对非显而易见的 HTML 结构、复杂的 CSS 规则或 JavaScript 函数添加注释。
 *   **性能:** 虽然是单文件，但仍需注意避免非常大的图片或不必要的复杂计算。
 *   **测试:** 在主流浏览器（Chrome, Firefox, Edge, Safari）和不同屏幕尺寸下测试页面显示和功能。
+
+## 10. 导航栏技术规范
+
+### 10.1 导航栏页面（nav.html）规范
+
+1. **Web Components 实现：**
+   ```html
+   <template id="nav-template">
+     <style>
+       :host {
+         --nav-background: #1890ff;
+         --nav-text-color: #ffffff;
+         --nav-hover-bg: rgba(255, 255, 255, 0.1);
+         /* 其他CSS变量定义 */
+       }
+       /* 导航栏样式 */
+     </style>
+     <nav class="navbar">
+       <!-- 导航栏结构 -->
+     </nav>
+   </template>
+   <script>
+     class NavBar extends HTMLElement {
+       constructor() {
+         super();
+         this.attachShadow({ mode: 'open' });
+         // 初始化Shadow DOM
+       }
+       // 组件生命周期方法
+     }
+     customElements.define('nav-bar', NavBar);
+   </script>
+   ```
+
+2. **样式封装：**
+   - 使用Shadow DOM隔离样式
+   - 定义关键CSS变量用于主题定制
+   - 实现响应式布局（含移动端适配）
+   - 提供预设主题样式
+
+3. **核心功能：**
+   - 下拉菜单控制
+   - 当前路径高亮
+   - 用户信息展示
+   - 响应式菜单切换
+
+### 10.2 导航栏引用规范
+
+1. **基础引用结构：**
+   ```html
+   <!-- 导航栏容器 -->
+   <div id="navbar-container"></div>
+   
+   <!-- 导航栏加载脚本 -->
+   <script>
+     class NavBarLoader {
+       static async load() {
+         try {
+           const response = await fetch('nav.html');
+           if (!response.ok) throw new Error('导航栏加载失败');
+           
+           const html = await response.text();
+           const container = document.getElementById('navbar-container');
+           
+           // 解析和注入组件
+           const parser = new DOMParser();
+           const doc = parser.parseFromString(html, 'text/html');
+           const template = doc.querySelector('template');
+           const script = doc.querySelector('script');
+           
+           if (template && script) {
+             document.body.appendChild(template);
+             const scriptElement = document.createElement('script');
+             scriptElement.textContent = script.textContent;
+             document.body.appendChild(scriptElement);
+             
+             // 创建组件实例
+             const navBar = document.createElement('nav-bar');
+             container.appendChild(navBar);
+           }
+         } catch (error) {
+           this.handleError(error);
+         }
+       }
+       
+       static handleError(error) {
+         const container = document.getElementById('navbar-container');
+         container.innerHTML = '<div class="navbar-placeholder">导航栏加载失败</div>';
+         console.error('导航栏加载错误:', error);
+       }
+     }
+     
+     // 页面加载完成后初始化导航栏
+     document.addEventListener('DOMContentLoaded', () => NavBarLoader.load());
+   </script>
+   ```
+
+2. **错误处理：**
+   - 网络请求失败显示占位内容
+   - 解析失败时提供降级方案
+   - 保持页面基本功能可用
+
+3. **性能优化：**
+   - 异步加载避免阻塞
+   - 延迟执行非关键代码
+   - 缓存已加载的组件
+
+4. **集成要点：**
+   - 确保与Bootstrap样式兼容
+   - 维护页面布局完整性
+   - 处理组件加载状态
