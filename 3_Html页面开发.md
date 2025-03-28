@@ -41,7 +41,7 @@ alwaysApply: false
 *   **语义化:** 使用正确的 HTML5 语义化标签，如 `<header>`, `<nav>`, `<main>`, `<footer>`, `<section>`, `<article>`, `<aside>` 等。
 *   **导航栏容器:** 在 `<body>` 标签内的顶部（或主要内容区域 `<main>` 的顶部），**必须**包含一个用于加载导航栏的容器，例如 `<div id="navbar-container"></div>`。
 *   **结构清晰:** 保持代码缩进一致，嵌套关系明确。
-*   **表单:** 使用 `<form>` 标签，为输入控件 `<input>`, `<select>`, `<textarea>` 提供明确的 `<label>` (使用 `for` 属性关联)。使用合适的 `type` 属性 (如 `text`, `email`, `date`, `number`)。利用 Bootstrap 的表单样式。
+    **表单:** 使用 `<form>` 标签，为输入控件 `<input>`, `<select>`, `<textarea>` 提供明确的 `<label>` (使用 `for` 属性关联)。使用合适的 `type` 属性 (如 `text`, `email`, `date`, `number`)。利用 Bootstrap 的表单样式。**表单字段和数据框的布局必须采用水平布局而不是默认的垂直布局**，使用 Bootstrap 的水平表单类实现。
 *   **按钮与链接:** 使用 `<button>` 元素处理页面内的交互动作；使用 `<a>` 元素进行页面跳转或链接到外部资源，并确保 `href` 属性有效。
 *   **图像:** 使用 `<img>` 标签，并**必须**提供有意义的 `alt` 属性。
 *   **可访问性 (A11y):** 在必要时添加 ARIA 属性 (如 `role`, `aria-label`, `aria-describedby`) 来增强可访问性，特别是对于自定义组件或复杂的交互。
@@ -263,6 +263,90 @@ alwaysApply: false
    - 输入框文字：14px
    - 输入框占位符：14px，颜色使用 `--text-placeholder`
    - 搜索/重置按钮：14px
+
+5. **输入框高度规范：**
+   - 输入框高度：28px，比文字高度稍高
+   - 可通过添加自定义类或直接设置 `.form-control` 的自定义样式来实现
+   - 示例CSS：
+     ```css
+     .search-form .form-control {
+       height: 28px;
+       padding-top: 0.25rem;
+       padding-bottom: 0.25rem;
+     }
+     ```
+   - 确保在表单布局中保持一致的高度
+
+6. **标签与输入框布局规范：**
+   - 每个字段的标签(label)与输入框在同一行，标签在左，输入框在右
+   - 多个字段保持水平排列，根据屏幕尺寸自动调整每行显示的字段数
+   - 响应式布局：
+     * 大屏(≥992px)：每行4个条件
+     * 中屏(≥768px)：每行3个条件
+     * 小屏(≥576px)：每行2个条件
+     * 超小屏(<576px)：每行1个条件
+   - 标签与输入框宽度比例：标签占30%，输入框占70%（可根据实际情况调整）
+   - 使用 Bootstrap 的 row-cols 类和水平表单结构实现
+   - 示例HTML：
+     ```html
+     <form class="row g-3">
+         <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+             <div class="row align-items-center">
+                 <label class="col-4 col-form-label">字段1</label>
+                 <div class="col-8">
+                     <input type="text" class="form-control">
+                 </div>
+             </div>
+         </div>
+         <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+             <div class="row align-items-center">
+                 <label class="col-4 col-form-label">字段2</label>
+                 <div class="col-8">
+                     <input type="text" class="form-control">
+                 </div>
+             </div>
+         </div>
+         <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+             <div class="row align-items-center">
+                 <label class="col-4 col-form-label">字段3</label>
+                 <div class="col-8">
+                     <input type="text" class="form-control">
+                 </div>
+             </div>
+         </div>
+         <div class="col-12 d-flex gap-2 justify-content-end mt-2">
+             <button type="submit" class="btn btn-primary">搜索</button>
+             <button type="reset" class="btn btn-secondary">重置</button>
+         </div>
+     </form>
+     ```
+
+7. **区域间距规范：**
+   - 搜索区域与数据表格区域的间距：5px
+   - 可通过在搜索区域容器底部添加 `mb-1` 类或自定义样式实现
+   - 示例HTML：
+     ```html
+     <div class="search-area mb-1">
+       <!-- 搜索区域内容 -->
+     </div>
+     <div class="table-responsive">
+       <!-- 数据表格内容 -->
+     </div>
+     ```
+
+8. **背景样式规范：**
+   - 搜索栏和页面标题所在区域不使用背景色和背景框
+   - 保持原始页面背景色，确保视觉上的简洁和清晰
+   - 避免使用卡片、阴影或边框等装饰元素包裹这些区域
+   - 示例样式：
+     ```css
+     .page-title-section,
+     .search-area {
+       background: transparent;
+       box-shadow: none;
+       border: none;
+     }
+     ```
 
 ### 8.7 按钮区域规范
 1. **位置：** 
