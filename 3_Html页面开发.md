@@ -225,46 +225,73 @@ alwaysApply: false
    - 大中屏：标题与操作区并排显示
    - 小屏：标题与操作区上下排列
 
-### 8.6 搜索区域规范
+### 8.6 搜索操作区域规范
 1. **布局要求：**
-   - 位置：顶部内容区域左侧
+   - 搜索条件、搜索按钮和页面级按钮全部在同一行
+   - 位置：搜索区域位于顶部内容区域，搜索条件在左侧，按钮在右侧
    - 响应式：
-     * 大屏(≥992px)：每行4个条件
-     * 中屏(≥768px)：每行3个条件
-     * 小屏(≥576px)：每行2个条件
-     * 超小屏(<576px)：每行1个条件
+     * 大屏(≥992px)：最多显示4个搜索条件
+     * 中屏(≥768px)：最多显示3个搜索条件
+     * 小屏(≥576px)：最多显示2个搜索条件
+     * 超小屏(<576px)：最多显示1个搜索条件
 
 2. **搜索条件项：**
    - 使用 Bootstrap 表单组件
    - 每个条件项结构：
      ```html
-     <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-         <label class="form-label">标签文本</label>
-         <input type="text" class="form-control">
-     </div>
-     ```
-
-3. **搜索/重置按钮：**
-   - 位置：搜索条件下方
-   - 对齐：右对齐
-   - 上边距：0.5rem (`mt-2`)
-   - 结构：
-     ```html
-     <div class="col-12">
-         <div class="d-flex gap-2 justify-content-end mt-2">
-             <button type="submit" class="btn btn-primary">搜索</button>
-             <button type="reset" class="btn btn-secondary">重置</button>
+     <div class="col-auto">
+         <div class="d-flex align-items-center">
+             <label class="me-2">标签文本</label>
+             <input type="text" class="form-control form-control-sm">
          </div>
      </div>
      ```
 
-4. **字号规范：**
-   - 标签文字：14px (`fs-6`)
-   - 输入框文字：14px
-   - 输入框占位符：14px，颜色使用 `--text-placeholder`
-   - 搜索/重置按钮：14px
+3. **搜索/重置按钮：**
+   - 位置：与搜索条件同一行，居右
+   - 结构：
+     ```html
+     <div class="ms-auto d-flex gap-2">
+         <button type="submit" class="btn btn-primary btn-sm">搜索</button>
+         <button type="reset" class="btn btn-secondary btn-sm">重置</button>
+     </div>
+     ```
 
-5. **输入框高度规范：**
+4. **页面级按钮规范：**
+   - 位置：最右侧，与页面右边界对齐（使用 `pe-0`）
+   - 内容：页面级主要操作按钮（新增、批量删除、导入、导出等）
+   - 响应式：
+     * 大中屏：右对齐
+     * 小屏：独占一行，居中对齐
+   - 结构：
+     ```html
+     <div class="d-flex gap-2 justify-content-end pe-0">
+         <button type="button" class="btn btn-primary btn-sm d-inline-flex gap-1 align-items-center">
+             <i class="bi bi-plus"></i>
+             <span>新增</span>
+         </button>
+         <button type="button" class="btn btn-danger btn-sm d-inline-flex gap-1 align-items-center">
+             <i class="bi bi-trash"></i>
+             <span>批量删除</span>
+         </button>
+     </div>
+     ```
+
+5. **统一样式规范：**
+   - 字号规范：
+     * 标签文字：14px (`fs-6`)
+     * 输入框文字：14px
+     * 输入框占位符：14px，颜色使用 `--text-placeholder`
+     * 所有按钮文字：14px
+     * 按钮内图标：14px，与文字对齐
+   - 间距规范：
+     * 标签与输入框间距：0.5rem (`me-2`)
+     * 字段之间间距：0.75rem (`me-3`)
+     * 按钮之间间距：0.5rem (`gap-2`)
+     * 按钮内部文字与图标间距：0.25rem (`gap-1`)
+     * 搜索区域与数据表格区域间距：5px (`mb-1`)
+
+6. **输入框高度规范：**
    - 输入框高度：28px，比文字高度稍高
    - 可通过添加自定义类或直接设置 `.form-control` 的自定义样式来实现
    - 示例CSS：
@@ -275,66 +302,14 @@ alwaysApply: false
        padding-bottom: 0.25rem;
      }
      ```
-   - 确保在表单布局中保持一致的高度
 
-6. **标签与输入框布局规范：**
-   - 每个字段的标签(label)与输入框在同一行，标签在左，输入框在右
-   - 多个字段保持水平排列，根据屏幕尺寸自动调整每行显示的字段数
-   - 响应式布局：
-     * 大屏(≥992px)：每行4个条件
-     * 中屏(≥768px)：每行3个条件
-     * 小屏(≥576px)：每行2个条件
-     * 超小屏(<576px)：每行1个条件
-   - 标签与输入框宽度比例：标签占30%，输入框占70%（可根据实际情况调整）
-   - 使用 Bootstrap 的 row-cols 类和水平表单结构实现
-   - 示例HTML：
-     ```html
-     <form class="row g-3">
-         <div class="col-lg-3 col-md-4 col-sm-6 col-12">
-             <div class="row align-items-center">
-                 <label class="col-4 col-form-label">字段1</label>
-                 <div class="col-8">
-                     <input type="text" class="form-control">
-                 </div>
-             </div>
-         </div>
-         <div class="col-lg-3 col-md-4 col-sm-6 col-12">
-             <div class="row align-items-center">
-                 <label class="col-4 col-form-label">字段2</label>
-                 <div class="col-8">
-                     <input type="text" class="form-control">
-                 </div>
-             </div>
-         </div>
-         <div class="col-lg-3 col-md-4 col-sm-6 col-12">
-             <div class="row align-items-center">
-                 <label class="col-4 col-form-label">字段3</label>
-                 <div class="col-8">
-                     <input type="text" class="form-control">
-                 </div>
-             </div>
-         </div>
-         <div class="col-12 d-flex gap-2 justify-content-end mt-2">
-             <button type="submit" class="btn btn-primary">搜索</button>
-             <button type="reset" class="btn btn-secondary">重置</button>
-         </div>
-     </form>
-     ```
+8. **响应式处理规则：**
+   - 在大屏幕上(≥992px)所有元素保持在同一行
+   - 在中小屏幕上，允许适当换行，保持界面美观
+   - 使用 `d-none d-md-block` 和 `d-none d-lg-block` 等类控制不同屏幕尺寸下搜索条件的显示
+   - 对于超出显示范围的搜索条件，可添加"更多"下拉按钮显示
 
-7. **区域间距规范：**
-   - 搜索区域与数据表格区域的间距：5px
-   - 可通过在搜索区域容器底部添加 `mb-1` 类或自定义样式实现
-   - 示例HTML：
-     ```html
-     <div class="search-area mb-1">
-       <!-- 搜索区域内容 -->
-     </div>
-     <div class="table-responsive">
-       <!-- 数据表格内容 -->
-     </div>
-     ```
-
-8. **背景样式规范：**
+9. **背景样式规范：**
    - 搜索栏和页面标题所在区域不使用背景色和背景框
    - 保持原始页面背景色，确保视觉上的简洁和清晰
    - 避免使用卡片、阴影或边框等装饰元素包裹这些区域
@@ -348,38 +323,7 @@ alwaysApply: false
      }
      ```
 
-### 8.7 按钮区域规范
-1. **位置：** 
-   - 顶部内容区域最右侧
-   - 与页面右边界对齐（使用 `pe-0` 移除右内边距）
-2. **内容：** 页面级主要操作按钮（新增、批量删除、导入、导出等）
-3. **响应式：**
-   - 大中屏：右对齐
-   - 小屏：独占一行，居中对齐
-4. **字号规范：**
-   - 页面级主要按钮（新增、批量删除等）：14px
-   - 表格内操作按钮：14px
-   - 次要按钮（如导入、导出）：14px
-   - 按钮内图标：14px，与文字对齐
-5. **间距规范：**
-   - 按钮之间的间距：0.5rem (`gap-2`)
-   - 按钮组与其他元素的间距：1rem (`mt-3`, `mb-3`)
-   - 按钮内部文字与图标的间距：0.25rem (`gap-1`)
-   - 结构示例：
-     ```html
-     <div class="d-flex gap-2 justify-content-end mb-3 pe-0">
-       <button type="button" class="btn btn-primary d-inline-flex gap-1 align-items-center">
-         <i class="bi bi-plus"></i>
-         <span>新增</span>
-       </button>
-       <button type="button" class="btn btn-danger d-inline-flex gap-1 align-items-center">
-         <i class="bi bi-trash"></i>
-         <span>批量删除</span>
-       </button>
-     </div>
-     ```
-
-### 8.8 数据表格区域规范
+### 8.7 表格区域规范
 1. **表格样式：**
    - 使用 Bootstrap 表格样式
    - 添加悬停效果：`.table-hover`
@@ -418,7 +362,7 @@ alwaysApply: false
    </div>
    ```
 
-### 8.9 分页区域规范
+### 8.8 分页区域规范
 1. **位置：** 表格下方
 2. **布局：**
    ```html
