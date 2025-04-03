@@ -61,8 +61,7 @@ alwaysApply: false
 * 页面标题
 * 搜索与操作区域
 * 表格区域
-* 分页组件
-* 弹窗组件（如新增/编辑表单）
+* 分页组件（如新增/编辑表单）
 
 ### 4.2 关键组件规范
 
@@ -120,7 +119,7 @@ alwaysApply: false
    * 表格样式：
      * 表头背景色：`#e4e7ed`
      * 表头文字颜色：`#606266`
-     * 单元格高度：32px
+     * 单元格高度：54px
      * 文字行高：16px
      * 单元格内边距：上下1px
    * 宽度控制：
@@ -134,13 +133,130 @@ alwaysApply: false
      * 表格列宽度根据内容合理自适应设置
      * 表格内容不换行
      * 为空数据状态提供友好的提示 `empty-text`
+   * **固定布局设计：**
+     * 容器布局：
+       ```scss
+       .table-page-container {
+         display: flex;
+         flex-direction: column;
+         height: calc(100vh - 40px);
+         
+         .table-container {
+           flex: 1;
+           display: flex;
+           flex-direction: column;
+           min-height: 0; // 允许内容收缩
+         }
+       }
+       ```
+     * 表格结构：
+       ```html
+       <div class="table-page-container">
+         <!-- 搜索区域 -->
+         <div class="search-area">
+           <!-- 搜索表单内容 -->
+         </div>
+         
+         <!-- 表格容器 -->
+         <div class="table-container">
+           <el-table
+             :data="tableData"
+             :height="tableHeight"
+             style="display: flex; flex-direction: column;"
+           >
+             <!-- 表头部分自动固定 -->
+             <el-table-header style="flex: none;">
+               <!-- 表头内容 -->
+             </el-table-header>
+             
+             <!-- 表格主体部分 -->
+             <el-table-body 
+               style="flex: 1; overflow-y: auto;"
+             >
+               <!-- 表格内容 -->
+             </el-table-body>
+           </el-table>
+           
+           <!-- 分页容器 -->
+           <div class="pagination-container">
+             <!-- 分页组件 -->
+           </div>
+         </div>
+       </div>
+       ```
+     * 固定列处理：
+       ```scss
+       .el-table {
+         .el-table__fixed,
+         .el-table__fixed-right {
+           height: 100%;
+           bottom: 0;
+           
+           .el-table__fixed-body-wrapper {
+             height: calc(100% - 48px); // 减去表头高度
+           }
+         }
+       }
+       ```
+     * 样式设置：
+       ```scss
+       .table-page-container {
+         .table-container {
+           .el-table {
+             // 表格行高统一
+             .el-table__row {
+               height: 54px;
+             }
+             
+             // 表头样式
+             .el-table__header-wrapper {
+               background-color: #e4e7ed;
+             }
+           }
+           
+           // 分页容器样式
+           .pagination-container {
+             flex: none;
+             position: relative;
+             z-index: 1;
+             padding: 15px 0;
+             background-color: #fff;
+             border-top: 1px solid #e4e7ed;
+             
+             .el-pagination {
+               text-align: right;
+               padding-right: 15px;
+             }
+           }
+         }
+       }
+       ```
 
 6. **分页区域**
    * 位于表格下方，使用 `<el-pagination>` 实现
    * 推荐 `layout="total, sizes, prev, pager, next, jumper"` 布局
    * 提供合理的页面大小选项，如 `[10, 20, 50, 100]`
    * 实现页码变化和每页条数变化的处理函数
-   * 文本右对齐，上下内边距10px
+   * 固定在底部：
+     * 使用 `flex: none` 保持固定高度
+     * 设置相对定位和 z-index 确保在最上层
+     * 添加上边框和背景色实现分隔
+     * 样式设置：
+       ```scss
+       .pagination-container {
+         flex: none;
+         position: relative;
+         z-index: 1;
+         padding: 15px 0;
+         background-color: #fff;
+         border-top: 1px solid #e4e7ed;
+         
+         .el-pagination {
+           text-align: right;
+           padding-right: 15px;
+         }
+       }
+       ```
 
 7. **弹窗组件**
    * 使用 `<el-dialog>` 实现弹窗容器
@@ -151,25 +267,195 @@ alwaysApply: false
      * 垂直位置：距顶部 8vh
      * 标题栏：浅灰背景色，紧凑型高度（上下内边距6px）
      * 关闭按钮：垂直居中对齐
-   * 表单布局原则：
-     * 复杂表单采用两列布局设计，每列宽度为总宽度的50%（减去间距）
-     * 列间距：30px，行间距：20px
-     * 表单区域左右内边距：30px
-   * 表单项规范：
-     * 标签宽度：80-100px
-     * 输入框宽度：自适应列宽
-     * 特殊控件（日期、下拉框）：宽度100%
-     * 单选框组：选项间距15px
-     * 多行文本框：独占一行
-   * 布局技巧：
-     * 相关字段放同一行
-     * 必填项优先靠前
-     * 较长的输入项（如备注）放最后
-     * 状态类选项（如启用/禁用）靠后放置
-   * 交互优化：
      * 禁用点击遮罩层关闭
-     * 底部按钮居中对齐
-     * 确定取消按钮间距：20px
+     ```html
+     <el-dialog
+       :title="dialogTitle"
+       :visible.sync="dialogVisible"
+       width="800px"
+       :close-on-click-modal="false"
+       custom-class="custom-dialog"
+     >
+     ```
+
+   * **布局方案**
+     1. 少量字段（1-6个）：
+        * 采用两列布局设计
+        * 每列宽度50%
+        * 使用 flex 布局实现
+        ```html
+        <div class="form-row">
+          <el-form-item label="字段1" prop="field1">
+            <el-input v-model="form.field1" />
+          </el-form-item>
+          <el-form-item label="字段2" prop="field2">
+            <el-input v-model="form.field2" />
+          </el-form-item>
+        </div>
+        ```
+
+     2. 中等字段（7-12个）：
+        * 普通输入项保持两列布局
+        * 文本域、复杂选择器占整行
+        * 相关字段放同一行
+        ```html
+        <div class="form-row">
+          <!-- 普通输入项两列 -->
+          <el-form-item label="字段1" prop="field1">
+            <el-input v-model="form.field1" />
+          </el-form-item>
+          <el-form-item label="字段2" prop="field2">
+            <el-input v-model="form.field2" />
+          </el-form-item>
+        </div>
+        <!-- 文本域占整行 -->
+        <el-form-item label="描述" prop="description" class="full-width">
+          <el-input type="textarea" v-model="form.description" />
+        </el-form-item>
+        ```
+
+     3. 大量字段（12个以上）：
+        * 使用标签页分类
+        * 或使用分组折叠面板
+        * 保持每组内部两列布局
+
+   * **间距规范**
+     * 弹窗边距：
+       * 小弹窗（600px以下）：上下15px，左右20px
+       * 标准弹窗（600px以上）：上下20px，左右30px
+     * 表单项间距：
+       * 横向间距：30px
+       * 纵向间距：20px
+     * 底部按钮：
+       * 居中对齐
+       * 按钮间距：20px
+       * 上下内边距：15px
+
+   * **交互规则**
+     1. 打开弹窗：
+        ```javascript
+        handleOpenDialog(type, row) {
+          this.dialogType = type;
+          this.dialogVisible = true;
+          
+          if (type === 'add') {
+            this.resetForm();
+          } else if (type === 'edit') {
+            this.form = JSON.parse(JSON.stringify(row));
+          }
+          
+          this.$nextTick(() => {
+            this.$refs.form.clearValidate();
+          });
+        }
+        ```
+
+     2. 关闭处理：
+        ```javascript
+        handleCloseDialog() {
+          this.dialogVisible = false;
+          this.resetForm();
+          this.$refs.form.clearValidate();
+          this.dialogLoading = false;
+        }
+        ```
+
+     3. 表单验证：
+        ```javascript
+        submitForm() {
+          this.$refs.form.validate(valid => {
+            if (!valid) return;
+            
+            this.dialogLoading = true;
+            // 提交逻辑
+            this.saveData().then(() => {
+              this.$message.success('保存成功');
+              this.handleCloseDialog();
+            }).catch(error => {
+              this.$message.error(error.message);
+            }).finally(() => {
+              this.dialogLoading = false;
+            });
+          });
+        }
+        ```
+
+   * **样式处理**
+     ```scss
+     .custom-dialog {
+       // 表单控件样式
+       .el-input,
+       .el-select,
+       .el-date-editor {
+         width: 100%;
+       }
+       
+       // 单选框组
+       .el-radio-group {
+         display: flex;
+         flex-wrap: wrap;
+         
+         .el-radio {
+           margin-right: 15px;
+           margin-bottom: 10px;
+         }
+       }
+       
+       // 复选框组
+       .el-checkbox-group {
+         display: flex;
+         flex-wrap: wrap;
+         
+         .el-checkbox {
+           margin-right: 15px;
+           margin-bottom: 10px;
+         }
+       }
+       
+       // 文本域
+       .el-textarea textarea {
+         min-height: 80px;
+       }
+       
+       // 上传区域
+       .upload-area {
+         padding: 20px;
+         border: 1px dashed #d9d9d9;
+         border-radius: 4px;
+         
+         &:hover {
+           border-color: #409EFF;
+         }
+       }
+       
+       // 表单行样式
+       .form-row {
+         display: flex;
+         margin: 0 -15px;
+         justify-content: space-between;
+         
+         .el-form-item {
+           width: calc(50% - 30px);
+           margin: 0 15px 20px;
+           
+           &.full-width {
+             width: calc(100% - 30px);
+           }
+         }
+       }
+     }
+     
+     // 响应式处理
+     @media screen and (max-width: 768px) {
+       .custom-dialog .form-row {
+         flex-direction: column;
+         
+         .el-form-item {
+           width: calc(100% - 30px);
+         }
+       }
+     }
+     ```
 
 ## 5. JavaScript 实现规范
 
