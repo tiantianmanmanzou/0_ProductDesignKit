@@ -270,13 +270,18 @@ def main():
     """主函数"""
     parser = argparse.ArgumentParser(description='构建Vue组件的静态页面')
     parser.add_argument('source', help='源组件文件路径')
-    parser.add_argument('output', help='输出目录路径')
     
     args = parser.parse_args()
     
+    # 使用固定的输出目录
+    output_dir = '/Users/zhangxy/GAFile/网络部SDC/24年/产品建设/技规功能设计/Export'
+    
+    # 确保输出目录存在
+    os.makedirs(output_dir, exist_ok=True)
+    
     config = {
         'source_component': args.source,
-        'output_dir': args.output
+        'output_dir': output_dir
     }
     
     try:
