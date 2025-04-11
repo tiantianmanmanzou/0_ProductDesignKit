@@ -964,3 +964,148 @@ alwaysApply: false
   * assets: 存放静态资源
   * store: 存放Vuex状态管理
 * **CSS命名:** 使用 BEM 或类似命名规范，提高可读性
+
+## 布局和样式最佳实践
+
+### 1. 样式文件组织
+
+推荐的样式文件组织结构：
+
+```
+src/
+  styles/
+    global.scss      # 全局样式
+    variables.scss   # 变量定义
+    mixins.scss     # 混入定义
+    themes/         # 主题相关
+```
+
+### 2. 全局样式与组件样式分离
+
+#### 2.1 全局样式（global.scss）
+
+全局样式文件应包含：
+- 基础重置样式
+- 布局框架样式
+- 通用组件样式覆盖
+- 响应式布局基础样式
+
+示例结构：
+```scss
+// 基础重置
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+// 布局框架
+.main-layout {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  min-width: 1200px;
+  overflow: hidden;
+}
+
+// 导航栏样式
+.navbar-container {
+  // 导航栏基础样式...
+}
+
+// 页面容器
+.page-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+// 表格页面通用样式
+.table-page {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+// 表单页面通用样式
+.form-page {
+  height: 100%;
+  padding: 16px;
+  overflow: auto;
+}
+```
+
+#### 2.2 组件样式（.vue文件）
+
+组件中的样式应：
+- 使用 scoped 属性隔离
+- 只包含组件特有的样式
+- 复用全局样式类
+- 保持样式简洁
+
+示例：
+```vue
+<template>
+  <div class="main-layout">
+    <!-- 组件内容 -->
+  </div>
+</template>
+
+<style lang="scss" scoped>
+// 只包含组件特有的样式
+.component-specific {
+  // ...
+}
+
+// 响应式布局
+@media screen and (max-width: 1366px) {
+  // 组件特有的响应式样式
+}
+</style>
+```
+
+### 3. 样式最佳实践
+
+1. 使用 BEM 命名规范
+2. 避免深层嵌套（不超过3层）
+3. 使用变量管理主题色和关键尺寸
+4. 统一管理断点值
+5. 使用混入(mixin)复用样式代码
+6. 避免样式重复定义
+
+### 4. 响应式设计
+
+推荐的断点设置：
+```scss
+// 断点变量
+$breakpoints: (
+  'sm': 768px,
+  'md': 1024px,
+  'lg': 1366px,
+  'xl': 1920px
+);
+
+// 响应式混入
+@mixin respond-to($breakpoint) {
+  @media screen and (max-width: map-get($breakpoints, $breakpoint)) {
+    @content;
+  }
+}
+```
+
+使用示例：
+```scss
+.some-element {
+  font-size: 16px;
+  
+  @include respond-to('lg') {
+    font-size: 14px;
+  }
+  
+  @include respond-to('md') {
+    font-size: 12px;
+  }
+}
+```
