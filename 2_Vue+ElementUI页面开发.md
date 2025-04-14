@@ -78,7 +78,6 @@ alwaysApply: false
 
 3. **搜索和操作区域**
    * 搜索栏和操作按钮要在同一行，搜索栏宽度自适应，操作按钮宽度根据内容自适应。保持一行不要换行。整体宽度和列表区域的宽度一致。
-   * 搜索和操作区域背景不要使用card，使用div。div使用透明背景。
    
     **搜索栏**
     * 使用 `<el-card>` 作为容器，内部使用 `<el-form :inline="true">` 实现行内表单
@@ -105,7 +104,33 @@ alwaysApply: false
       * 普通按钮：30px高度
       * 表格内文字按钮：22px高度
       * 删除按钮特殊颜色：`#f56c6c`
- 
+    * **按钮样式规范**：
+      * 主按钮（primary）：
+        - 用于页面主要操作，如搜索、提交、新增
+        - 位置：搜索栏右侧
+      * 默认按钮：
+        - 用于次要操作，如重置、取消、返回
+        - 位置：搜索栏右侧
+      * 文本按钮：
+        - 用于表格内轻量级操作，如查看详情
+        - 位置：表格操作列
+      * 按钮间距：
+        - 同类按钮之间保持10px间距
+      * 图标按钮：图标与文字间距为5px
+      * 按钮实现代码示例：
+      ```vue
+      <div class="operation-buttons">
+        <el-button type="primary" size="small" icon="el-icon-plus" @click="handleAdd">新增</el-button>
+        <el-button size="small" icon="el-icon-download" @click="handleExport">导出</el-button>
+        <el-button type="danger" size="small" icon="el-icon-delete" :disabled="!multipleSelection.length" @click="handleBatchDelete">批量删除</el-button>
+      </div>
+      ```
+    * **按钮状态设计**：
+      * 按钮需要提供以下状态：默认、悬停、点击、禁用
+      * 禁用状态应明确通过视觉表现（灰色、禁止操作光标）
+      * 批量操作按钮在无选中项时应自动禁用
+      * 危险操作按钮必须有二次确认机制
+      * 长时间操作的按钮需提供加载状态（使用 loading 属性）
 
 5. **表格区域**
    * 使用 `<el-card>` 作为容器，内部使用 `<el-table>` 实现
