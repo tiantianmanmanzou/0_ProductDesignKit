@@ -78,7 +78,6 @@ alwaysApply: false
 
 3. **搜索和操作区域**
    * 搜索栏和操作按钮要在同一行，搜索栏宽度自适应，操作按钮宽度根据内容自适应。保持一行不要换行。整体宽度和列表区域的宽度一致。
-   * 搜索和操作区域背景不要使用card，使用div。div使用透明背景。
    
     **搜索栏**
     * 使用 `<el-card>` 作为容器，内部使用 `<el-form :inline="true">` 实现行内表单
@@ -105,7 +104,33 @@ alwaysApply: false
       * 普通按钮：30px高度
       * 表格内文字按钮：22px高度
       * 删除按钮特殊颜色：`#f56c6c`
- 
+    * **按钮样式规范**：
+      * 主按钮（primary）：
+        - 用于页面主要操作，如搜索、提交、新增
+        - 位置：搜索栏右侧
+      * 默认按钮：
+        - 用于次要操作，如重置、取消、返回
+        - 位置：搜索栏右侧
+      * 文本按钮：
+        - 用于表格内轻量级操作，如查看详情
+        - 位置：表格操作列
+      * 按钮间距：
+        - 同类按钮之间保持10px间距
+      * 图标按钮：图标与文字间距为5px
+      * 按钮实现代码示例：
+      ```vue
+      <div class="operation-buttons">
+        <el-button type="primary" size="small" icon="el-icon-plus" @click="handleAdd">新增</el-button>
+        <el-button size="small" icon="el-icon-download" @click="handleExport">导出</el-button>
+        <el-button type="danger" size="small" icon="el-icon-delete" :disabled="!multipleSelection.length" @click="handleBatchDelete">批量删除</el-button>
+      </div>
+      ```
+    * **按钮状态设计**：
+      * 按钮需要提供以下状态：默认、悬停、点击、禁用
+      * 禁用状态应明确通过视觉表现（灰色、禁止操作光标）
+      * 批量操作按钮在无选中项时应自动禁用
+      * 危险操作按钮必须有二次确认机制
+      * 长时间操作的按钮需提供加载状态（使用 loading 属性）
 
 5. **表格区域**
    * 使用 `<el-card>` 作为容器，内部使用 `<el-table>` 实现
@@ -964,3 +989,148 @@ alwaysApply: false
   * assets: 存放静态资源
   * store: 存放Vuex状态管理
 * **CSS命名:** 使用 BEM 或类似命名规范，提高可读性
+
+## 布局和样式最佳实践
+
+### 1. 样式文件组织
+
+推荐的样式文件组织结构：
+
+```
+src/
+  styles/
+    global.scss      # 全局样式
+    variables.scss   # 变量定义
+    mixins.scss     # 混入定义
+    themes/         # 主题相关
+```
+
+### 2. 全局样式与组件样式分离
+
+#### 2.1 全局样式（global.scss）
+
+全局样式文件应包含：
+- 基础重置样式
+- 布局框架样式
+- 通用组件样式覆盖
+- 响应式布局基础样式
+
+示例结构：
+```scss
+// 基础重置
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+// 布局框架
+.main-layout {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  min-width: 1200px;
+  overflow: hidden;
+}
+
+// 导航栏样式
+.navbar-container {
+  // 导航栏基础样式...
+}
+
+// 页面容器
+.page-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+// 表格页面通用样式
+.table-page {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+// 表单页面通用样式
+.form-page {
+  height: 100%;
+  padding: 16px;
+  overflow: auto;
+}
+```
+
+#### 2.2 组件样式（.vue文件）
+
+组件中的样式应：
+- 使用 scoped 属性隔离
+- 只包含组件特有的样式
+- 复用全局样式类
+- 保持样式简洁
+
+示例：
+```vue
+<template>
+  <div class="main-layout">
+    <!-- 组件内容 -->
+  </div>
+</template>
+
+<style lang="scss" scoped>
+// 只包含组件特有的样式
+.component-specific {
+  // ...
+}
+
+// 响应式布局
+@media screen and (max-width: 1366px) {
+  // 组件特有的响应式样式
+}
+</style>
+```
+
+### 3. 样式最佳实践
+
+1. 使用 BEM 命名规范
+2. 避免深层嵌套（不超过3层）
+3. 使用变量管理主题色和关键尺寸
+4. 统一管理断点值
+5. 使用混入(mixin)复用样式代码
+6. 避免样式重复定义
+
+### 4. 响应式设计
+
+推荐的断点设置：
+```scss
+// 断点变量
+$breakpoints: (
+  'sm': 768px,
+  'md': 1024px,
+  'lg': 1366px,
+  'xl': 1920px
+);
+
+// 响应式混入
+@mixin respond-to($breakpoint) {
+  @media screen and (max-width: map-get($breakpoints, $breakpoint)) {
+    @content;
+  }
+}
+```
+
+使用示例：
+```scss
+.some-element {
+  font-size: 16px;
+  
+  @include respond-to('lg') {
+    font-size: 14px;
+  }
+  
+  @include respond-to('md') {
+    font-size: 12px;
+  }
+}
+```

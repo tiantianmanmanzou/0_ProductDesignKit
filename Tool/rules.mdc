@@ -9,5 +9,5 @@ alwaysApply: true
 # 工作方法
 1. 仔细分析用户的需求，是否已经明确指定了工作方法和目标。如果已经指定好了，严格按照用户的要求执行即可。
 2. 如果没有用户没有明确指定了工作方法和目标，则遵循如下工作原则完成用户任务。
-    - 所有关于软件产品设计的工作请你严格遵循：[1_ProductDesign产品设计.md](mdc:0_ProductDesignKit/1_ProductDesign产品设计.md)
-    - 所有的产品页面开发的工作请你严格遵循：[2_Vue+ElementUI页面开发.md](mdc:0_ProductDesignKit/2_Vue+ElementUI页面开发.md)
+    - 所有关于软件产品设计的工作请你严格遵循：[1_ProductDesign产品设计.md](mdc:技规功能设计/技规功能设计/技规功能设计/0_ProductDesignKit/1_ProductDesign产品设计.md)
+    - 所有的产品页面开发的工作请你严格遵循：[2_Vue+ElementUI页面开发.md](mdc:技规功能设计/技规功能设计/技规功能设计/0_ProductDesignKit/2_Vue+ElementUI页面开发.md)
