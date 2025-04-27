@@ -1,6 +1,6 @@
 ---
 description: 
-globs: 
+globs:  
 alwaysApply: false
 ---
 # 角色
