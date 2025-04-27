@@ -1,0 +1,8 @@
+我要开发一个新的页面：
+请你按照@/0_ProductDesignKit/VueCoding_v2/列表页面开发规范.md，生成一个新的页面。
+页面文件名称为：@/VueTemplate/src/views/example/test3.vue
+页面设计文档是@测试产品/产品设计.md
+
+要求：实现设计文档中说明的所有功能
+
+完成页面配置后 请更新路由 然后在@/VueTemplate/src/views/navigation/index.vue添加对应的卡片，便于我预览
