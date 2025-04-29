@@ -6,7 +6,7 @@
 - **可维护性**：通用布局和样式集中管理，统一修改自动生效。
 
 ## 2. 推荐组件
-统一使用 `TablePageLayout.vue` 作为所有列表页面的主布局组件。**禁止**在页面中单独引入和拼装基础布局组件（如 `SearchBar`、`DataTable`、`Pagination`、`PageHeader` 等）。
+统一使用 `TablePage-PageLayout.vue` 作为所有列表页面的主布局组件。**禁止**在页面中单独引入和拼装基础布局组件（如 `SearchBar`、`DataTable`、`Pagination`、`PageHeader` 等）。
 
 ## 3. 开发流程
 1. **新建页面组件**  
@@ -38,6 +38,7 @@
 | `show-table-action` | 是否显示行操作列       |
 | `action-width`      | 行操作列宽度           |
 | `table-actions`     | 行操作按钮配置         |
+| `action-fixed`      | 操作列是否固定（可选，默认不固定） |
 
 5. **事件处理**  
    监听并处理以下事件：
@@ -68,7 +69,9 @@
    - 仅在必要时添加极少量页面特有样式，**禁止**覆盖或重复布局相关样式。
    - 全局滚动页面根节点加 `global-scroll` class，并在全局样式中设置 `#app.global-scroll { overflow: auto !important; }`，进入/离开页面时动态切换。
 
-
+## 说明
+- **操作栏默认不固定**：如无特殊业务需求，所有列表页面的操作栏（行操作列）默认不固定。仅在内容宽度过大、操作列易被遮挡时，才允许通过 `action-fixed="right"` 显式设置为固定。
+- `action-fixed` 属性可选，取值为 `right`（固定在右侧）或 `null`/不传（不固定）。
 
 ## 4. 示例代码
 
