@@ -16,7 +16,7 @@
 
 ```js
 import NavigationHeaderLayout from '@/layouts/NavigationHeaderLayout.vue' // 导航栏布局（示例名）
-import VerticalTabsPageLayout from '@/layouts/VerticalTabs-PageLayout.vue' // 标签栏布局
+import VerticalTabsPageLayout from '@/layouts/VerticalTabs_TabLayout.vue' // 标签栏布局
 import TabPageA from '@/views/TabModule/TabPageA.vue'
 import TabPageB from '@/views/TabModule/TabPageB.vue'
 import TabPageC from '@/views/TabModule/TabPageC.vue'
@@ -43,7 +43,7 @@ const tabList = [
 
 ## 3. 标签栏布局组件实现
 
-在 `VerticalTabs-PageLayout.vue` 中，最外层包裹导航栏布局，并通过 `props` 接收标签页配置：
+在 `VerticalTabs_TabLayout.vue` 中，最外层包裹导航栏布局，并通过 `props` 接收标签页配置：
 
 ```vue
 <template>
@@ -107,7 +107,7 @@ export default {
 
 1. **在 `views/` 下新建业务内容页面**，如 `TabPageX.vue`，只写内容。
 2. **在 `router/index.js` 的对应模块路由下添加子路由**，并在 `tabList` 中补充对应 tab 配置。
-3. **无需在内容页引入导航栏或标签栏布局**，布局已由路由和 `VerticalTabs-PageLayout.vue` 统一处理。
+3. **无需在内容页引入导航栏或标签栏布局**，布局已由路由和 `VerticalTabs_TabLayout.vue` 统一处理。
 
 ---
 
@@ -115,14 +115,14 @@ export default {
 
 ```
 路由配置：
-/tab-module (VerticalTabs-PageLayout)
+/tab-module (VerticalTabs_PageLayout)
   ├─ /tabA (TabPageA.vue)
   ├─ /tabB (TabPageB.vue)
   └─ /tabC (TabPageC.vue)
 
 布局渲染：
 NavigationHeaderLayout
-  └─ VerticalTabs-PageLayout
+  └─ VerticalTabs_PageLayout
       ├─ 左侧标签栏（tabList）
       └─ <router-view/>（渲染业务内容页）
 ```

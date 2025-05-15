@@ -6,7 +6,7 @@
 - **可维护性**：通用布局和样式集中管理，统一修改自动生效。
 
 ## 2. 推荐组件
-统一使用 `TablePage-PageLayout.vue` 作为所有列表页面的主布局组件。**禁止**在页面中单独引入和拼装基础布局组件（如 `SearchBar`、`DataTable`、`Pagination`、`PageHeader` 等）。
+统一使用 `TablePage_PageLayout.vue` 作为所有列表页面的主布局组件。**禁止**在页面中单独引入和拼装基础布局组件（如 `SearchBar`、`DataTable`、`Pagination`、`PageHeader` 等）。
 
 ## 3. 开发流程
 1. **新建页面组件**  
