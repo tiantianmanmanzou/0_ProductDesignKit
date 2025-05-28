@@ -27,7 +27,7 @@
 │   ├── components/             # 全局/可复用组件
 │   │   ├── common/             # 通用基础组件 (如 DataTable.vue, SearchBar.vue)
 │   │   └── [业务模块名]/       # 按业务模块划分的组件 (可选，视项目复杂度)
-│   ├── layouts/                # 布局组件 (如 TablePage_PageLayout.vue, VerticalTabs_TabLayout.vue)
+│   ├── layouts/                # 布局组件 (如 PageLayout_TablePage.vue, TabLayout_VerticalTabs.vue)
 │   ├── mock/                   # 模拟数据接口
 │   ├── plugins/                # Vue 插件 (如 element.js)
 │   ├── router/                 # 路由配置
@@ -254,10 +254,11 @@
 *   **Scoped CSS**: 优先使用 `<style scoped>`。
 *   **避免使用 ID 选择器**: 除非有非常特殊的需求，否则应避免在 CSS 中使用 ID 选择器，以降低其特异性。
 *   **避免使用 `!important`**: 尽量通过提高选择器特异性或调整样式加载顺序来解决样式覆盖问题，避免滥用 `!important`。
+*   **样式调整的可复用性**: 当进行界面样式调整时，应优先考虑修改可复用的组件内部样式或项目共享的 `.scss` 样式文件（如 `variables.scss`, `mixins.scss` 或特定功能的 `*.scss` 文件）。这样做的好处是，相关的调整能够自动应用到所有使用该组件或共享样式的新旧页面，从而提高开发效率，确保视觉风格的统一性，并减少在多个页面单独进行重复样式调整的工作量。避免直接在单个页面视图（`.vue` 文件）中针对通用组件或布局进行一次性的样式覆盖，除非该调整确实是该页面独有的、不具备通用性的特殊情况。
 
 ## 9. 通用组件开发规范
 
-参考 `components/common/DataTable.vue` 和 `layouts/TablePage_PageLayout.vue` 的设计：
+参考 `components/common/DataTable.vue` 和 `layouts/PageLayout_TablePage.vue` 的设计：
 
 *   **高内聚、低耦合**: 组件应专注于自身功能。
 *   **Props**: 精心设计 Props，使其易于理解和使用。提供必要的默认值和类型校验。
