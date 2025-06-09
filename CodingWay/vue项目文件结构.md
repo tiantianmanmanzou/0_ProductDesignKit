@@ -6,7 +6,7 @@
 @/VueTemplate/src/main.js
 @/VueTemplate/src/router/index.js
 @/VueTemplate/public/index.html
-@/VueTemplate/src/layouts/TablePage-PageLayout.vue
+@/VueTemplate/src/layouts/PageLayout_TablePage.vue
 
 
 
