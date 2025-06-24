@@ -102,16 +102,61 @@
 - **`show-selection` / `show-index`**: 是否显示表格复选框和序号列。
 - **`show-table-action` / `action-width`**: 是否显示表格行操作列及其宽度。
 
+#### 3.2.1 操作按钮配置规范
+
+**重要**: 操作按钮配置必须严格按照以下格式，以确保与 `ActionButton` 组件兼容：
+
+```javascript
+pageActions: [ // 顶部操作按钮配置
+  { 
+    text: '按钮显示文字',    // 必需：按钮显示的文字
+    action: 'actionKey',     // 必需：点击时传递的动作标识
+    type: 'primary',         // 可选：按钮类型 (primary, default, success, warning, danger, info, text)
+    size: 'medium',          // 可选：按钮尺寸 (large, medium, small, mini)
+    disabled: false          // 可选：是否禁用
+  }
+  // 注意：不要添加 icon 属性，操作按钮统一使用纯文字显示
+]
+```
+
+**配置要点**：
+- 使用 `text` 而不是 `label` 作为显示文字属性
+- 使用 `action` 而不是 `key` 作为动作标识属性  
+- **禁止使用 `icon` 属性**，所有操作按钮统一使用纯文字显示
+- 事件处理方法接收的参数是 `action` 的值（字符串），而不是整个按钮对象
+
 ### 3.3 事件处理机制
 
 页面组件监听由 `FilterBarTablePageLayout` 组件 emit 的事件，以执行相应的业务逻辑。`ResourceClaim.vue` 中处理的主要事件包括：
 
 - **`@search="handleFilter"`**: 当顶部搜索栏（通常内嵌 `SearchBar`）触发表单搜索时调用 `handleFilter` 方法。
 - **`@reset="resetFilters"`**: 当顶部搜索栏重置时调用。
-- **`@action="handleTopAction"`**: 当点击顶部操作按钮（由 `action-buttons` 配置生成）时调用。
+- **`@action="handleTopAction"`**: 当点击顶部操作按钮（由 `action-buttons` 配置生成）时调用。**重要**: 事件参数是按钮配置中的 `action` 值（字符串），不是整个按钮对象。
 - **`@table-action="handleRowAction"`**: (如果使用布局组件默认的行操作机制) 当点击行操作按钮时调用。在 `ResourceClaim.vue` 中，行操作通过 `#table-action` 插槽自定义，因此该事件可能不直接使用。
 - **`@pagination="fetchData"`**: 当分页组件的页码或每页条数变化时调用 `fetchData` 方法。
 - **`@selection-change="handleSelectionChange"`**: 当表格行的勾选状态发生变化时调用。
+
+#### 3.3.1 操作按钮事件处理示例
+
+```javascript
+// 正确的操作按钮事件处理方法
+handlePageActionTriggered(action) {
+  console.log('Page action:', action); // action 是字符串，如 'export', 'batchClaim'
+  
+  if (action === 'export') {
+    this.exportData();
+  } else if (action === 'batchClaim') {
+    this.batchClaimResources();
+  } else if (action === 'delete') {
+    this.deleteSelectedItems();
+  }
+}
+```
+
+**注意事项**：
+- 事件处理方法接收的参数是按钮的 `action` 属性值（字符串）
+- 不要使用 `action.key` 或 `action.action` 的形式
+- 直接对字符串进行比较即可
 
 ### 3.4 插槽（Slots）定制与应用
 
@@ -283,8 +328,8 @@ export default {
         // ...
       ],
       pageActions: [ // 顶部操作按钮
-        { label: '批量认领', key: 'batchClaim', type: 'primary', icon: 'el-icon-check' },
-        { label: '导出列表', key: 'export', icon: 'el-icon-download' },
+        { text: '批量认领', action: 'batchClaim', type: 'primary' },
+        { text: '导出列表', action: 'export', type: 'default' },
       ],
       tableColumnConfig: [ // 表格列配置
         { prop: 'resourceName', label: '资源名称', minWidth: 200 },
@@ -369,15 +414,15 @@ export default {
       this.loadData();
     },
     handlePageActionTriggered(action) {
-      console.log('Page action:', action.key);
-      if (action.key === 'batchClaim') {
+      console.log('Page action:', action);
+      if (action === 'batchClaim') {
         if (this.selectedTableRows.length === 0) {
           this.$message.warning('请至少选择一项进行批量认领');
           return;
         }
         // 执行批量认领逻辑...
         this.$message.success(`对 ${this.selectedTableRows.length} 项执行批量认领`);
-      } else if (action.key === 'export') {
+      } else if (action === 'export') {
         // 执行导出逻辑
         this.$message.info('执行导出...');
       }
@@ -467,7 +512,46 @@ export default {
 ## 8. 结论
 本规范旨在通过推广使用标准化的核心列表布局组件（如 `TablePageLayout.vue` 或 `FilterBarTablePageLayout.vue`），并结合清晰的页面组件实现模式，来提升列表页面的开发效率、代码质量和可维护性。开发者应严格遵循本规范，充分利用布局组件提供的 Props、Events 和 Slots，将业务逻辑与视图结构有效分离。
 
-## 9. 其他注意事项与说明
+## 9. 开发检查清单
+
+为了避免常见错误，在开发列表页面时请使用以下检查清单：
+
+### 9.1 操作按钮配置检查
+- [ ] 使用 `text` 属性而不是 `label`
+- [ ] 使用 `action` 属性而不是 `key` 
+- [ ] **没有**添加 `icon` 属性（操作按钮统一使用纯文字）
+- [ ] 事件处理方法直接比较 `action` 字符串，不使用 `action.key`
+- [ ] 优先使用标准布局组件的 `actionButtons` 配置，避免内联按钮
+
+### 9.2 组件兼容性检查  
+- [ ] 确认使用的布局组件（`TablePageLayout` 或 `FilterBarTablePageLayout`）
+- [ ] 验证 Props 属性名与组件API一致
+- [ ] 确认事件处理方法的参数格式正确
+
+### 9.3 代码示例验证
+- [ ] 参考最新的组件文档和示例代码
+- [ ] 在浏览器中验证按钮文字正确显示
+- [ ] 测试按钮点击事件正常触发
+
+## 10. 特殊布局处理
+
+### 10.1 非标准表格布局
+对于不使用标准表格布局的页面（如 `UserManagement-Role.vue` 的左右分栏布局），仍需遵循按钮文字显示原则：
+
+```vue
+<!-- 推荐：即使是内联按钮也使用纯文字 -->
+<el-button type="primary" @click="handleAddRole">新增角色</el-button>
+
+<!-- 避免：不要添加图标 -->
+<el-button type="primary" icon="el-icon-plus" @click="handleAddRole">新增角色</el-button>
+```
+
+### 10.2 布局选择原则
+- **标准列表页面**：优先使用 `TablePageLayout` 或 `FilterBarTablePageLayout`
+- **特殊布局需求**：可以自定义布局，但仍需遵循按钮文字显示规范
+- **按钮一致性**：无论使用哪种布局，所有操作按钮都应使用纯文字显示
+
+## 11. 其他注意事项与说明
 - **操作栏固定**: `FilterBarTablePageLayout` 或 `TablePageLayout` 可能提供 `action-fixed` Prop (例如，取值为 `right`) 来固定行操作列。应仅在表格内容宽度确实很大，导致操作列易被遮挡时才启用固定。默认情况下，操作列不固定，以获得更好的响应式表现。
 - **分页数据绑定**: 分页相关的 `currentPage` 和 `pageSize` 推荐使用 `.sync` 修饰符实现双向数据绑定，简化状态管理。
 - **Props 与 Slots 的选择**: 优先使用 Props 进行配置。当 Props 无法满足复杂的UI定制或逻辑嵌入需求时，再考虑使用 Slots。
