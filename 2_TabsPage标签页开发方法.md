@@ -101,6 +101,67 @@ export default {
 </template>
 ```
 
+### 4.1 内容页开发最佳实践
+
+为避免在标签页内容开发中遇到常见错误，特别是数据处理相关的问题，请遵循以下最佳实践：
+
+1. **JavaScript变量声明规范**:
+   - 使用 `let` 声明可能会被重新赋值的变量（例如在筛选、排序处理中的数据数组）
+   - 使用 `const` 声明不会被重新赋值的变量（如配置项、常量等）
+   - 特别注意在数据筛选流程中避免尝试修改 `const` 声明的变量
+
+2. **常见错误示例与解决方案**:
+   ```javascript
+   // 错误示例 - 导致 'mockData' is constant no-const-assign 错误
+   methods: {
+     loadTabData() {
+       const mockData = this.generateMockData(); // 获取初始数据
+       
+       // 错误：尝试重新赋值const变量
+       if (this.activeFilter) {
+         mockData = mockData.filter(item => item.type === this.activeFilter);
+       }
+     }
+   }
+   
+   // 正确示例 1 - 使用let声明
+   methods: {
+     loadTabData() {
+       let mockData = this.generateMockData();
+       
+       if (this.activeFilter) {
+         mockData = mockData.filter(item => item.type === this.activeFilter);
+       }
+     }
+   }
+   
+   // 正确示例 2 - 使用新变量存储筛选结果
+   methods: {
+     loadTabData() {
+       const mockData = this.generateMockData();
+       let filteredData = mockData;
+       
+       if (this.activeFilter) {
+         filteredData = filteredData.filter(item => item.type === this.activeFilter);
+       }
+       
+       // 使用filteredData进行后续操作
+     }
+   }
+   ```
+
+3. **组件间数据传递**:
+   - 避免在父子组件间传递大量数据，尤其是复杂对象
+   - 对于不同标签页间需要共享的数据，优先考虑使用Vuex状态管理
+   - 当需要在标签切换时保持数据状态，考虑使用`keep-alive`组件或本地存储
+
+4. **异步数据加载**:
+   - 在各标签页组件的`created`或`mounted`钩子中加载数据
+   - 考虑使用加载状态标志(`loading`)控制加载指示器的显示
+   - 在标签页切换频繁的场景下，考虑缓存已加载的数据以提高性能
+
+遵循这些最佳实践可以避免常见的数据处理错误，提高标签页组件的健壮性和可维护性。
+
 ---
 
 ## 5. 快速开发新标签页页面的流程
