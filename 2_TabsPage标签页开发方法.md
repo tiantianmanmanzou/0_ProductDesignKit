@@ -464,6 +464,262 @@ NavigationHeaderLayout (或项目级顶层导航布局, 如 GovernanceCenterHead
                   └── Pagination (分页组件)
 ```
 
+---
+
+## 7. 面包屑导航配置方法
+
+### 7.1 面包屑导航实现原理
+
+本项目的面包屑导航采用统一的配置化管理方式，通过路由配置的 `meta.breadcrumb` 属性来定义面包屑路径，由顶级导航布局组件（如 `GovernanceCenterHeaderLayout`）统一读取和显示。
+
+### 7.2 面包屑配置步骤
+
+#### 步骤1：在路由配置中添加面包屑信息
+
+在 `src/router/index.js` 中，为需要显示面包屑的路由添加 `meta.breadcrumb` 配置：
+
+```javascript
+{
+  path: '/governance/datamodel/catalog',
+  name: 'ModelCatalog',
+  component: ModelCatalog,
+  meta: { 
+    title: '模型目录', 
+    breadcrumb: ['数据治理', '数据建模', '模型目录'] 
+  },
+  children: [
+    {
+      path: 'source-table',
+      name: 'SourceTable',
+      component: SourceAttached,
+      meta: { 
+        title: '贴源表', 
+        breadcrumb: ['数据治理', '数据建模', '模型目录'] 
+      }
+    }
+  ]
+}
+```
+
+#### 步骤2：确保顶级布局组件支持面包屑读取
+
+顶级导航布局组件（如 `GovernanceCenterHeaderLayout`）需要包含以下代码：
+
+**模板部分：**
+```vue
+<template>
+  <!-- 面包屑导航 -->
+  <div class="breadcrumb-container">
+    <div class="breadcrumb">
+      <i class="el-icon-s-home"></i>
+      <template v-if="currentBreadcrumb && currentBreadcrumb.length">
+        <template v-for="(item, index) in currentBreadcrumb">
+          <span class="breadcrumb-separator" :key="`sep-${index}`">/</span>
+          <span :key="`item-${index}`">{{ item }}</span>
+        </template>
+      </template>
+      <template v-else>
+        <!-- 默认面包屑逻辑 -->
+        <span class="breadcrumb-separator">/</span>
+        <span>默认路径</span>
+      </template>
+    </div>
+  </div>
+</template>
+```
+
+**脚本部分：**
+```javascript
+export default {
+  computed: {
+    currentBreadcrumb() {
+      // 从当前路由的meta中获取面包屑配置
+      return this.$route.meta && this.$route.meta.breadcrumb ? this.$route.meta.breadcrumb : null;
+    }
+  },
+  watch: {
+    '$route'() {
+      // 路由变化时更新相关状态
+      this.updateActiveModuleFromRoute();
+    }
+  }
+}
+```
+
+### 7.3 面包屑配置的关键注意事项
+
+#### 1. 嵌套路由的面包屑配置
+对于嵌套路由结构，**每个实际访问的子路由都需要配置面包屑**，而不仅仅是父路由：
+
+```javascript
+// ❌ 错误示例：只在父路由配置面包屑
+{
+  path: '/governance/datamodel/catalog',
+  meta: { breadcrumb: ['数据治理', '数据建模', '模型目录'] },
+  children: [
+    {
+      path: 'source-table',
+      // ❌ 缺少面包屑配置，会导致面包屑显示不正确
+      meta: { title: '贴源表' }
+    }
+  ]
+}
+
+// ✅ 正确示例：每个子路由都配置面包屑
+{
+  path: '/governance/datamodel/catalog',
+  meta: { breadcrumb: ['数据治理', '数据建模', '模型目录'] },
+  children: [
+    {
+      path: 'source-table',
+      // ✅ 正确配置面包屑
+      meta: { title: '贴源表', breadcrumb: ['数据治理', '数据建模', '模型目录'] }
+    }
+  ]
+}
+```
+
+#### 2. 标签页路由的面包屑处理
+对于标签页类型的页面，每个标签对应的路由都应该配置相同的面包屑：
+
+```javascript
+// 模型目录标签页示例
+children: [
+  { 
+    path: 'source-table', 
+    meta: { title: '贴源表', breadcrumb: ['数据治理', '数据建模', '模型目录'] } 
+  },
+  { 
+    path: 'dimension-table', 
+    meta: { title: '维度表', breadcrumb: ['数据治理', '数据建模', '模型目录'] } 
+  },
+  { 
+    path: 'fact-table', 
+    meta: { title: '事实表', breadcrumb: ['数据治理', '数据建模', '模型目录'] } 
+  }
+]
+```
+
+#### 3. 详情页路由的面包屑处理
+详情页及其子页面也需要配置面包屑：
+
+```javascript
+// 详情页示例
+{
+  path: 'catalog/source-table/:id',
+  name: 'TableDetails',
+  meta: { title: '逻辑表详情', breadcrumb: ['数据治理', '数据建模', '逻辑表详情'] },
+  children: [
+    {
+      path: 'field-config',
+      meta: { title: '字段配置', breadcrumb: ['数据治理', '数据建模', '逻辑表详情'] }
+    },
+    {
+      path: 'visualization',
+      meta: { title: '可视化', breadcrumb: ['数据治理', '数据建模', '逻辑表详情'] }
+    }
+  ]
+}
+```
+
+### 7.4 面包屑配置检查清单
+
+在配置面包屑时，请按照以下清单进行检查：
+
+- [ ] **父路由配置**：确保父路由有面包屑配置
+- [ ] **子路由配置**：确保每个实际访问的子路由都有面包屑配置
+- [ ] **标签页路由**：确保同一模块下的所有标签页路由使用相同的面包屑
+- [ ] **详情页路由**：确保详情页及其子页面都配置了正确的面包屑
+- [ ] **数组格式**：确保面包屑配置为字符串数组格式：`['级别1', '级别2', '级别3']`
+- [ ] **布局组件**：确保使用的顶级布局组件支持面包屑读取功能
+- [ ] **测试验证**：在浏览器中访问各个页面，验证面包屑显示是否正确
+
+### 7.5 常见问题排查
+
+#### 问题1：面包屑不显示或显示默认值
+**原因**：当前访问的路由没有配置 `meta.breadcrumb`
+**解决**：检查并添加当前路由的面包屑配置
+
+#### 问题2：嵌套路由面包屑显示不正确
+**原因**：只在父路由配置了面包屑，子路由缺少配置
+**解决**：为每个实际访问的子路由添加面包屑配置
+
+#### 问题3：Vue 2 模板编译错误
+**原因**：在 `<template v-for>` 上使用了 `:key` 属性
+**解决**：将 `:key` 属性移到实际的 DOM 元素上
+
+```javascript
+// ❌ 错误用法
+<template v-for="(item, index) in items" :key="index">
+  <span>{{ item }}</span>
+</template>
+
+// ✅ 正确用法  
+<template v-for="(item, index) in items">
+  <span :key="index">{{ item }}</span>
+</template>
+```
+
+### 7.6 面包屑配置示例
+
+以下是完整的面包屑配置示例，展示了不同层级页面的配置方法：
+
+```javascript
+// 数据标准管理模块
+{
+  path: '/governance/datastandard/management',
+  component: GovernanceCenterHeaderLayout,
+  meta: { title: '数据标准管理', breadcrumb: ['数据治理', '数据标准', '数据标准管理'] },
+  children: [
+    {
+      path: 'data-element',
+      name: 'DataElementStandards',
+      component: DataElementStandards,
+      meta: { title: '数据元标准', breadcrumb: ['数据治理', '数据标准', '数据标准管理', '数据元标准'] }
+    }
+  ]
+},
+
+// 数据建模模块
+{
+  path: '/governance/datamodel',
+  component: GovernanceCenterHeaderLayout,
+  meta: { title: '数据建模' },
+  children: [
+    {
+      path: 'catalog',
+      name: 'ModelCatalog',
+      component: ModelCatalog,
+      meta: { title: '模型目录', breadcrumb: ['数据治理', '数据建模', '模型目录'] },
+      children: [
+        {
+          path: 'source-table',
+          name: 'SourceTable',
+          component: SourceAttached,
+          meta: { title: '贴源表', breadcrumb: ['数据治理', '数据建模', '模型目录'] }
+        }
+      ]
+    },
+    {
+      path: 'catalog/source-table/:id',
+      name: 'TableDetails',
+      component: TableDetails,
+      meta: { title: '逻辑表详情', breadcrumb: ['数据治理', '数据建模', '逻辑表详情'] },
+      children: [
+        {
+          path: 'field-config',
+          name: 'FieldConfiguration',
+          component: FieldConfiguration,
+          meta: { title: '字段配置', breadcrumb: ['数据治理', '数据建模', '逻辑表详情'] }
+        }
+      ]
+    }
+  ]
+}
+```
+
+通过以上配置方法，可以确保项目中的面包屑导航始终显示正确的路径层级，提升用户体验和导航的一致性。
+
 
 
 
