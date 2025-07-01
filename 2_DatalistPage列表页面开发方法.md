@@ -94,7 +94,7 @@
 - **`search-items`**: 顶部搜索栏的字段配置数组 (e.g., `searchConfig` data property)。
 - **`initial-form-data`**: 筛选表单的初始数据对象 (e.g., `filters` data property)。
 - **`action-buttons`**: 页面顶部操作按钮的配置数组 (e.g., `mainActions` for "导入", "导出", "删除")。
-- **`table-columns`**: 表格列定义的配置数组 (e.g., `columnConfig`, 定义了 `prop`, `label`, `width`, `slot` 等)。
+- **`table-columns`**: 表格列定义的配置数组 (e.g., `columnConfig`, 定义了 `prop`, `label`, `width`, `minWidth`, `slot` 等)。
 - **`table-data`**: 当前页需要显示的表格数据数组 (e.g., `tableData` data property)。
 - **`loading`**: 控制表格加载状态的布尔值。
 - **`total`**: 数据总条目数，用于分页 (e.g., `pagination.total`)。
@@ -102,7 +102,53 @@
 - **`show-selection` / `show-index`**: 是否显示表格复选框和序号列。
 - **`show-table-action` / `action-width`**: 是否显示表格行操作列及其宽度。
 
-#### 3.2.1 操作按钮配置规范
+#### 3.2.1 表格列宽配置规范 (CRITICAL)
+
+**重要**: 为确保表格列宽能够自适应并均匀分布，所有列配置必须遵循以下规范：
+
+**✅ 推荐的列宽配置方式**：
+```javascript
+columnConfig: [
+  // ✅ 推荐：使用 minWidth 实现自适应列宽
+  { prop: 'fieldName', label: '字段名称', minWidth: 120 },
+  { prop: 'fieldComment', label: '中文名称', minWidth: 120 },
+  { prop: 'dataType', label: '数据类型', minWidth: 100 },
+  
+  // ✅ 推荐：对于内容较长的列，可以设置更大的 minWidth
+  { prop: 'description', label: '描述信息', minWidth: 200 },
+  
+  // ✅ 推荐：对于状态、操作等固定宽度列，可以使用 width
+  { prop: 'status', label: '状态', width: 80 },
+  { prop: 'action', label: '操作', width: 120 }
+]
+```
+
+**❌ 避免的配置方式**：
+```javascript
+columnConfig: [
+  // ❌ 避免：所有列都使用固定 width，会导致列宽无法自适应
+  { prop: 'fieldName', label: '字段名称', width: 180 },
+  { prop: 'fieldComment', label: '中文名称', width: 180 },
+  
+  // ❌ 避免：minWidth 设置过大，在小屏幕上会导致水平滚动
+  { prop: 'dataType', label: '数据类型', minWidth: 300 }
+]
+```
+
+**配置原则**：
+1. **优先使用 `minWidth`**：让列宽能够根据容器大小自适应调整
+2. **合理设置最小宽度**：通常设置为 80-150px，确保内容可读性
+3. **固定宽度仅用于特殊列**：如状态标签、操作按钮等内容固定的列
+4. **启用溢出提示**：DataTable 组件已自动启用 `show-overflow-tooltip`
+5. **内容长度适配**：根据预期内容长度合理设置 minWidth 值
+
+**列宽自适应效果**：
+- 表格会根据容器宽度自动分配列宽
+- 每列都有最小宽度保证，不会被压缩得过小
+- 内容超出列宽时会显示省略号和悬停提示
+- 整体布局在不同屏幕尺寸下保持良好适应性
+
+#### 3.2.2 操作按钮配置规范
 
 **重要**: 操作按钮配置必须严格按照以下格式，以确保与 `ActionButton` 组件兼容：
 
