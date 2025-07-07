@@ -74,8 +74,27 @@
 
 #### 2.5 测试规划
 
-测试金字塔模型: 简述本项目推荐的单元测试、集成测试、端到端(E2E)测试的投入比例和侧重点。
-关键测试范围: 列出需要重点保障的核心业务流程和非功能性测试点（如性能、安全）。
+**测试金字塔模型与工具选型:**
+
+| 测试类型 | 推荐工具/方案 | 测试目的与投入比例 |
+| :--- | :--- | :--- |
+| **前端单元测试** | **[Vitest](https://vitest.dev/)** | 测试 `stores` (Pinia) 业务逻辑、`utils` 工具函数等纯逻辑单元 - **60%投入** |
+| **前端组件测试** | **[Vue Testing Library](https://testing-library.com/docs/vue-testing-library/intro/) + Vitest** | 测试 Vue 组件的 props、events、交互行为 - **25%投入** |
+| **后端单元测试** | **[Pytest](https://docs.pytest.org/)** | 测试 `services`, `utils`, `core` 中的单个函数/方法（使用 Mock） - **60%投入** |
+| **后端集成测试** | **Pytest + TestClient** | 测试 API 接口、数据库交互，使用专用测试数据库 - **25%投入** |
+| **端到端(E2E)测试** | **[Playwright](https://playwright.dev/)** | 测试完整用户流程，在 Docker 环境中运行 - **15%投入** |
+
+**关键测试范围:**
+- **核心业务流程:** 用户登录 -> 项目创建 -> Excel上传解析 -> AI内容生成 -> Word文档生成
+- **高并发场景:** AI内容生成模块的108并发处理能力
+- **性能测试:** API响应时间 < 500ms，页面加载 < 3000ms
+- **安全测试:** JWT认证、权限控制、SQL注入防护
+- **数据完整性:** Excel合并单元格处理、Word文档格式保持
+
+**测试环境要求:**
+- 所有测试必须在 **Docker 容器化环境** 中执行
+- 使用 `docker-compose` 一键启动测试环境（前端、后端、测试数据库）
+- E2E测试需要完整的服务依赖栈（MySQL、Redis、MinIO）
 
 #### 2.6 开发与运行环境
 
@@ -244,6 +263,12 @@
     *   **启动命令:** [引用或重申全局启动命令，例如：`./mvnw spring-boot:run`]
     *   **模块加载验证:** [描述如何通过日志或其他方式，确认本模块已成功加载。例如：项目启动时，控制台应打印日志 `[INFO] UserModule initialized successfully.`]
     *   **【新增】健康检查端点:** `访问 http://localhost:8080/actuator/health/[module-name] (如果定义了模块特定健康指示器)，应返回 {"status": "UP"}。`
+*   **Docker测试环境配置:**
+    *   **容器化测试:** 所有测试必须在Docker容器化环境中执行，确保环境一致性和可复现性
+    *   **测试环境启动:** 使用 `docker-compose -f docker-compose.test.yml up -d` 启动测试环境
+    *   **服务依赖:** 包含前端服务、后端服务、测试数据库(MySQL)、Redis缓存、MinIO存储
+    *   **测试数据库:** 使用独立的测试数据库实例，与开发和生产环境完全隔离
+    *   **环境清理:** 测试完成后使用 `docker-compose -f docker-compose.test.yml down -v` 清理环境
   
 
 #### **5. 测试方案**
@@ -252,20 +277,49 @@
     *   **测试重点:** 明确本模块的测试核心，是业务逻辑的正确性、API接口的稳定性，还是高并发下的性能。
     *   **测试数据:** 描述测试数据的准备策略（Mock、代码生成、数据库预置）。
 
-*   **后端测试用例:** (使用表格或结构化列表)
+*   **后端测试用例设计:**
     *   **单元测试 (Unit Tests):**
-        *   **目标:** 验证单个类或方法中的业务逻辑，**需要Mock所有外部依赖**（如数据库、其他服务）。
-        *   **用例模板:** `【用例ID】UC-UserSvc-001 |【测试目标】测试UserService.createUser方法在用户名已存在时抛出异常 |【前置条件】Mock UserRepository的findByUsername返回一个已存在的用户 |【测试步骤】调用createUser方法 |【预期结果】捕获到UsernameExistsException异常。`
+        *   **目标:** 验证单个类或方法的业务逻辑，使用 `unittest.mock` Mock所有外部依赖
+        *   **工具:** Pytest + Mock
+        *   **用例结构:**
+            ```python
+            def test_create_user_with_existing_username_should_raise_exception():
+                # Arrange
+                mock_user_repo = Mock()
+                mock_user_repo.find_by_username.return_value = User(username="existing_user")
+                user_service = UserService(mock_user_repo)
+                
+                # Act & Assert
+                with pytest.raises(UsernameExistsException):
+                    user_service.create_user("existing_user", "password")
+            ```
     *   **集成测试 (Integration Tests):**
-        *   **目标:** 验证模块内多个组件（如Controller -> Service -> Repository）的协同工作，**可使用内存数据库(H2)或Testcontainers连接真实数据库**。
-        *   **用例模板:** `【用例ID】IC-UserAPI-001 |【测试目标】通过API创建用户后，能在数据库中查询到该用户 |【前置条件】启动了包含内存数据库的测试环境 |【测试步骤】1. 发送 POST /api/v1/users 请求。2. 使用JPA/JDBC查询数据库。|【预期结果】1. API返回201 Created。2. 数据库中存在对应记录，且密码已加密。`
+        *   **目标:** 验证API接口与数据库交互的完整流程
+        *   **工具:** Pytest + TestClient + 专用测试数据库
+        *   **用例结构:**
+            ```python
+            def test_create_user_api_integration():
+                # Arrange
+                user_data = {"username": "testuser", "password": "testpass"}
+                
+                # Act
+                response = client.post("/api/v1/users", json=user_data)
+                
+                # Assert
+                assert response.status_code == 201
+                assert response.json()["username"] == "testuser"
+                # 验证数据库中的记录
+                user_in_db = db.query(User).filter_by(username="testuser").first()
+                assert user_in_db is not None
+            ```
 
 *   **前端测试用例:**
     *   **组件单元测试 (Component Unit Tests):**
-        *   **目标:** 隔离测试单个UI组件的渲染和行为，**使用Vitest/Jest等工具**。
+        *   **目标:** 测试单个Vue组件的渲染和交互行为
+        *   **工具:** Vue Testing Library + Vitest
         *   **用例模板:** `【用例ID】UC-UserForm-001 |【测试目标】测试UserForm组件的邮箱输入框在输入格式错误时显示错误提示 |【前置条件】渲染UserForm组件 |【测试步骤】1. 找到邮箱输入框。2. 输入'invalid-email'。3. 触发blur事件。|【预期结果】组件中出现包含“邮箱格式不正确”文本的元素。`
     *   **端到端(E2E)测试场景 (End-to-End Tests):**
-        *   **目标:** 模拟真实用户在浏览器中的完整操作流程，**使用Cypress/Playwright等工具**。
+        *   **目标:** 模拟真实用户在浏览器中的完整操作流程，**使用/Playwright等工具**。
         *   **场景模板:**
             *   **场景:** 新用户成功注册并自动登录。
             *   **步骤:**
@@ -277,3 +331,43 @@
                 1.  `cy.url().should('include', '/dashboard')`
                 2.  页面上显示 "欢迎, new_e2e_user"
                 3.  后台数据库中存在该新用户记录。
+
+**测试文件目录规范:**
+```
+Excel2Doc/
+├── backend/
+│   ├── app/
+│   │   └── ... (源代码)
+│   └── tests/                  # 所有后端测试
+│       ├── integration/
+│       │   └── test_projects_api.py  # 后端集成测试 (API测试)
+│       └── unit/
+│           └── test_project_service.py # 后端单元测试
+│
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── business/
+│   │   │   │   ├── FileParseProgress.vue
+│   │   │   │   └── FileParseProgress.spec.ts  # 组件测试紧随组件
+│   │   │   └── ...
+│   │   ├── stores/
+│   │   │   ├── project.ts
+│   │   │   └── project.spec.ts              # Store单元测试紧随源文件
+│   │   └── ...
+│   └── tests/                  # E2E 测试独立存放
+│       └── e2e/
+│           └── project-management.spec.ts   # E2E测试用例
+│
+└── test/                       # 项目级测试配置
+    ├── scripts/
+    │   └── run_all_tests.sh    # 完整测试流程脚本
+    └── docker/
+        └── docker-compose.test.yml # 测试环境配置
+```
+
+**规范说明:**
+1. **后端测试** (`backend/tests`)：明确划分为 `unit` 和 `integration` 子目录，职责清晰
+2. **前端单元/组件测试**：遵循"就近原则"，测试文件 (`.spec.ts`) 与源文件（`.vue`, `.ts`）放在同一目录下
+3. **前端E2E测试** (`frontend/tests/e2e`)：统一存放，按业务模块组织文件
+4. **项目级测试配置** (`test/`)：包含测试脚本和Docker配置文件
