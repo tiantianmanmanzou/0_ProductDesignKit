@@ -51,7 +51,7 @@
 - **后端:**
   建议技术栈，例如：Java/Spring Boot, Python/Django, Go/Gin并说明选型理由（性能、生态、团队熟悉度等）。
 - **前端:**
-  建议技术栈，例如：Vue.js/Vite, React/Next.js并说明选型理由（开发效率、SEO、社区支持等）。
+  建议技术栈，例如：React/Next.js（优先推荐使用），Vue.js/Vite并说明选型理由（开发效率、SEO、社区支持等）。
 - **数据库:**
   建议数据库组合，例如：MySQL for transactional data, MongoDB for flexible data, Redis for caching/session management并说明选型理由。
 - **关键中间件/服务:**
