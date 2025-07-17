@@ -4,7 +4,7 @@
 
 # 任务
 
-根据用户提供的 [项目需求说明文档]，生成一份宏观的、全面的项目架构和设计蓝图。
+根据用户提供的 [产品设计需求说明文档]，生成一份宏观的、全面的项目架构和设计蓝图。
 
 # 工作流程
 
@@ -41,20 +41,154 @@
 
 ## 总体技术方案
 
-### 技术栈选型
+### 架构风格
 
-- **架构风格:**
-  建议架构，如：单体应用, 微服务, Serverless并说明选型理由。
-- **后端:**
-  建议技术栈，例如：Java/Spring Boot, Python/Django, Go/Gin并说明选型理由（性能、生态、团队熟悉度等）。
-- **前端:**
-  建议技术栈，例如：React/Next.js（优先推荐使用），Vue.js/Vite并说明选型理由（开发效率、SEO、社区支持等）。
-- **数据库:**
-  建议数据库组合，例如：MySQL for transactional data, MongoDB for flexible data, Redis for caching/session management并说明选型理由。
-- **关键中间件/服务:**
-  例如：消息队列(RabbitMQ/Kafka), 搜索引擎(Elasticsearch)并说明选型理由。
-- **系统架构设计:**
-  系统架构图: 使用 Mermaid绘制一幅高层次的系统架构图，清晰展示各主要组件（前端、网关、后端服务、数据库、缓存等）及其交互关系。
+建议架构，如：单体应用, 微服务, Serverless并说明选型理由。
+
+### 后端
+
+建议技术栈，例如：Java/Spring Boot, Python/Django, Go/Gin并说明选型理由（性能、生态、团队熟悉度等）。
+
+### 前端
+
+建议技术栈，例如：React/Next.js（优先推荐使用），Vue.js/Vite并说明选型理由（开发效率、SEO、社区支持等）。
+
+### 数据库
+
+建议数据库组合，例如：MySQL for transactional data, MongoDB for flexible data, Redis for caching/session management并说明选型理由。
+
+### 关键中间件/服务
+
+例如：消息队列(RabbitMQ/Kafka), 搜索引擎(Elasticsearch)并说明选型理由。
+
+### 系统架构设计
+
+**要求**:
+
+使用 Mermaid v8.8 兼容语法绘制高层次的系统架构图，清晰展示各主要组件及其交互关系。
+
+**绘制规范**:
+
+- **图表类型**: 使用 `graph TD` 或 `graph LR`，避免使用 `flowchart`
+- **节点标识**: 避免使用全角括号 `（）`、斜杠 `/`、全角冒号 `：` 等特殊符号
+- **子图命名**: 不要在子图标题中使用括号或特殊符号
+- **连接描述**: 使用简洁的英文或中文描述，避免特殊符号
+
+**架构组件覆盖**:
+
+- 前端应用层
+- API网关或反向代理层  
+- 后端服务层
+- 数据存储层（数据库、缓存、对象存储等）
+- 外部服务层（如第三方API）
+
+**示例架构图格式**:
+
+```mermaid
+graph TD
+    subgraph 客户端层
+        A[前端应用]
+        B[移动端应用]
+    end
+
+    subgraph 网关层
+        C[API网关]
+        D[负载均衡]
+    end
+
+    subgraph 应用服务层
+        E[用户服务]
+        F[业务服务]
+        G[数据服务]
+    end
+
+    subgraph 数据层
+        H[主数据库]
+        I[缓存系统]
+        J[对象存储]
+    end
+
+    A --> C
+    B --> C
+    C --> E
+    C --> F
+    C --> G
+    E --> H
+    F --> H
+    G --> I
+    G --> J
+```
+
+### 全局布局和导航设计
+
+#### 设计原则
+
+- **统一性**: 所有页面采用统一的布局标准，保持界面一致性
+- **上下文感知**: 导航菜单根据页面类型和业务场景智能显示相关功能
+- **权限控制**: 导航菜单根据用户权限动态过滤
+- **响应式设计**: 支持不同屏幕尺寸的自适应布局
+
+#### 全局页面布局结构
+
+使用ASCII字符绘制全局页面布局结构，明确各区域的功能和职责。根据业务需求和用户体验要求，合理安排各功能区域的位置和关系。布局可能包含：
+
+- **主导航区**: 承载系统主要功能模块的导航入口
+- **系统标题栏**: 显示系统名称、用户信息、全局操作等
+- **上下文工具栏**: 在需要特定业务上下文的页面显示，提供业务相关的快捷操作
+- **主内容区**: 各页面的核心内容展示区域
+- **状态信息栏**: 显示系统状态、版本信息等（可选）
+
+#### 导航系统设计
+
+- **一级导航**: 主要功能模块（根据业务需求确定核心功能板块）
+- **二级导航**: 具体功能页面（每个模块下的具体操作页面）
+- **三级导航**: 子功能或配置项（如有需要，支持更细粒度的功能分类）
+
+**导航菜单层级结构**：
+
+**导航菜单配置数据结构**：
+
+定义导航菜单的TypeScript接口，包含id、title、icon、path、children、permission等属性。
+
+**核心导航菜单规划**：
+
+根据功能模块拆解结果，详细规划每个菜单项的路径、层级关系和权限要求。
+
+#### 上下文工具栏设计
+
+**显示策略**：
+
+根据不同页面的业务场景需求，灵活配置上下文工具栏的显示和功能。
+
+**工具栏功能**：
+
+- 提供与当前页面业务流程相关的快捷操作
+- 显示业务上下文相关的选择器、过滤器或状态信息
+- 支持工作流程中的状态切换和操作引导
+
+**工具栏数据结构**：
+
+定义上下文工具栏的TypeScript接口，包含工具项配置、显示状态、业务数据等属性。
+
+#### 布局状态管理
+
+**布局状态定义**：
+
+定义LayoutState接口，包含：
+
+- 导航系统状态（展示模式、菜单数据、激活路径）
+- 上下文工具栏状态（显示状态、工具项配置、相关业务数据）
+- 页面状态（当前页面、页面标题、面包屑导航）
+
+**状态管理操作**：
+
+定义布局状态的核心操作方法：
+
+- `toggleNavigation()`: 切换导航系统的展示状态
+- `setActiveMenu(path: string)`: 设置当前激活的菜单项
+- `updateContextToolbar(config: ToolbarConfig)`: 更新上下文工具栏配置
+- `updateNavigationMenus()`: 更新导航菜单（权限过滤）
+- `setBreadcrumb(items: BreadcrumbItem[])`: 设置面包屑导航
 
 ## 核心模块设计与测试规划
 
@@ -196,35 +330,208 @@
 
 ```mermaid
 graph TD
-    subgraph Browser
-        A[Vue.js App]
+    subgraph 客户端层
+        A[Vue.js应用]
     end
 
-    subgraph Server
-        B[Nginx / API Gateway]
+    subgraph 服务层
+        B[Nginx反向代理]
         C[用户认证服务]
         F[项目管理服务]
         G[文件处理服务]
     end
 
-    subgraph Data Tier
-        D[PostgreSQL Database]
-        E[Redis Cache]
-        H[Object Storage]
+    subgraph 数据层
+        D[PostgreSQL数据库]
+        E[Redis缓存]
+        H[对象存储]
     end
 
-    A -- HTTPS --B;
-    B -- /api/v1/auth --C;
-    B -- /api/v1/projects --F;
-    B -- /api/v1/.../files --G;
-
-    C -- CRUD --D[fa:fa-database PostgreSQL];
-    F -- CRUD --D;
-    G -- Read/Write Metadata --D;
-    G -- File Stream --H[fa:fa-hdd Object Storage];
-    C -- Session/Cache --E[fa:fa-bolt Redis];
-    F -- Cache --E;
+    A --> B
+    B --> C
+    B --> F
+    B --> G
+    C --> D
+    F --> D
+    G --> D
+    G --> H
+    C --> E
+    F --> E
 ```
+
+### 全局布局和导航设计
+
+#### 设计原则
+
+- **统一性**: 所有页面采用统一的布局标准，保持界面一致性
+- **上下文感知**: 导航菜单根据页面类型和业务场景智能显示相关功能
+- **权限控制**: 导航菜单根据用户权限动态过滤
+- **响应式设计**: 支持不同屏幕尺寸的自适应布局
+
+#### 全局页面布局结构
+
+使用ASCII字符绘制全局页面布局结构，明确各区域的功能和职责。根据业务需求和用户体验要求，合理安排各功能区域的位置和关系。布局可能包含：
+
+- **主导航区**: 承载系统主要功能模块的导航入口
+- **系统标题栏**: 显示系统名称、用户信息、全局操作等
+- **上下文工具栏**: 在需要特定业务上下文的页面显示，提供业务相关的快捷操作
+- **主内容区**: 各页面的核心内容展示区域
+- **状态信息栏**: 显示系统状态、版本信息等（可选）
+
+**布局示例（智能文档处理系统）**：
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│    智能文档处理系统      用户信息  [登出]                      │
+├──────────────┬──────────────────────────────────────────────┤
+│    项目管理   │                                             │
+│    文件处理   │                   主内容区                   │
+│    用户设置   │  ┌─────────────────────────────────────────┐ │
+│             │  │      [项目选择器] [文件上传] [导出]      │ │
+│             │  └─────────────────────────────────────────┘ │
+│             │                                             │
+│             │              项目详情页面                   │
+│             │          ┌─────────┬─────────┐             │
+│             │          │ 文件列表 │ 处理状态 │             │
+│             │          └─────────┴─────────┘             │
+├──────────────┴──────────────────────────────────────────────┤
+│    版本: v1.0.0    状态: 运行正常                           │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### 导航系统设计
+
+- **一级导航**: 主要功能模块（根据业务需求确定核心功能板块）
+- **二级导航**: 具体功能页面（每个模块下的具体操作页面）
+- **三级导航**: 子功能或配置项（如有需要，支持更细粒度的功能分类）
+
+**导航菜单层级结构**：
+
+```
+智能文档处理系统
+├── 项目管理
+│   ├── 项目列表
+│   ├── 创建项目
+│   └── 项目设置
+├── 文件处理
+│   ├── 文件上传
+│   ├── 处理进度
+│   └── 结果导出
+└── 用户设置
+    ├── 个人信息
+    └── 系统设置
+```
+
+**导航菜单配置数据结构**：
+
+```typescript
+interface NavigationMenu {
+  id: string;
+  title: string;
+  icon: string;
+  path: string;
+  permission?: string[];
+  children?: NavigationMenu[];
+  isActive?: boolean;
+}
+```
+
+**核心导航菜单规划**：
+
+```typescript
+const navigationMenus: NavigationMenu[] = [
+  {
+    id: 'projects',
+    title: '项目管理',
+    icon: 'folder',
+    path: '/projects',
+    permission: ['user'],
+    children: [
+      { id: 'project-list', title: '项目列表', path: '/projects', icon: 'list' },
+      { id: 'project-create', title: '创建项目', path: '/projects/create', icon: 'plus' }
+    ]
+  },
+  {
+    id: 'files',
+    title: '文件处理',
+    icon: 'file',
+    path: '/files',
+    permission: ['user'],
+    children: [
+      { id: 'file-upload', title: '文件上传', path: '/files/upload', icon: 'upload' },
+      { id: 'file-progress', title: '处理进度', path: '/files/progress', icon: 'clock' }
+    ]
+  }
+];
+```
+
+#### 上下文工具栏设计
+
+**显示策略**：
+
+根据不同页面的业务场景需求，灵活配置上下文工具栏的显示和功能：
+
+- 项目列表页面：显示项目选择器、创建项目按钮
+- 项目详情页面：显示文件上传、批量操作、导出功能
+- 文件处理页面：显示处理状态筛选器、刷新按钮
+
+**工具栏功能**：
+
+- 提供与当前页面业务流程相关的快捷操作
+- 显示业务上下文相关的选择器、过滤器或状态信息
+- 支持工作流程中的状态切换和操作引导
+
+**工具栏数据结构**：
+
+```typescript
+interface ContextToolbar {
+  id: string;
+  title: string;
+  items: ToolbarItem[];
+  visible: boolean;
+}
+
+interface ToolbarItem {
+  id: string;
+  type: 'button' | 'selector' | 'filter' | 'info';
+  label: string;
+  action?: () => void;
+  data?: any;
+}
+```
+
+#### 布局状态管理
+
+**布局状态定义**：
+
+```typescript
+interface LayoutState {
+  navigation: {
+    collapsed: boolean;
+    activeMenu: string;
+    menuData: NavigationMenu[];
+  };
+  contextToolbar: {
+    visible: boolean;
+    currentToolbar?: ContextToolbar;
+  };
+  page: {
+    title: string;
+    breadcrumb: BreadcrumbItem[];
+    currentPath: string;
+  };
+}
+```
+
+**状态管理操作**：
+
+定义布局状态的核心操作方法：
+
+- `toggleNavigation()`: 切换导航系统的展示状态
+- `setActiveMenu(path: string)`: 设置当前激活的菜单项
+- `updateContextToolbar(config: ToolbarConfig)`: 更新上下文工具栏配置
+- `updateNavigationMenus()`: 更新导航菜单（权限过滤）
+- `setBreadcrumb(items: BreadcrumbItem[])`: 设置面包屑导航
 
 ## 核心模块设计与测试规划
 
