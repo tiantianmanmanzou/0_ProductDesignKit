@@ -93,7 +93,7 @@
 - **`title`**: 页面标题 (e.g., `"资源认领"`)。
 - **`search-items`**: 顶部搜索栏的字段配置数组 (e.g., `searchConfig` data property)。
 - **`initial-form-data`**: 筛选表单的初始数据对象 (e.g., `filters` data property)。
-- **`action-buttons`**: 页面顶部操作按钮的配置数组 (e.g., `mainActions` for "导入", "导出", "删除")。
+- **`action-buttons`**: 页面顶部操作按钮的配置数组 (e.g., `pageActions` for "导入", "导出", "删除")。详见下方ActionButton配置说明。
 - **`table-columns`**: 表格列定义的配置数组 (e.g., `columnConfig`, 定义了 `prop`, `label`, `width`, `slot` 等)。
 - **`table-data`**: 当前页需要显示的表格数据数组 (e.g., `tableData` data property)。
 - **`loading`**: 控制表格加载状态的布尔值。
@@ -102,13 +102,106 @@
 - **`show-selection` / `show-index`**: 是否显示表格复选框和序号列。
 - **`show-table-action` / `action-width`**: 是否显示表格行操作列及其宽度。
 
+### 3.2.1 ActionButton配置详解
+
+页面顶部操作按钮通过 `action-buttons` prop 配置，使用内置的 `ActionButton.vue` 组件渲染。按钮配置对象必须遵循以下格式：
+
+#### 按钮配置对象属性
+
+| 属性名 | 类型 | 是否必填 | 说明 | 示例值 |
+|--------|------|----------|------|--------|
+| `text` | String | **必填** | 按钮显示的文字内容 | `"新增"`, `"批量导入"`, `"导出"` |
+| `action` | String | **必填** | 按钮的唯一标识符，用于事件处理 | `"add"`, `"import"`, `"export"` |
+| `type` | String | 可选 | Element UI按钮类型 | `"primary"`, `"default"`, `"success"`, `"warning"`, `"danger"` |
+| `size` | String | 可选 | Element UI按钮尺寸，默认`"medium"` | `"large"`, `"medium"`, `"small"`, `"mini"` |
+| `icon` | String | 可选 | Element UI图标类名 | `"el-icon-plus"`, `"el-icon-download"` |
+| `disabled` | Boolean | 可选 | 是否禁用按钮，默认`false` | `true`, `false` |
+
+#### 正确的配置示例
+
+```javascript
+pageActions: [
+  {
+    text: '新增',           // 必填：按钮文字
+    action: 'add',         // 必填：操作标识
+    type: 'primary',       // 可选：主按钮样式
+    icon: 'el-icon-plus'   // 可选：按钮图标
+  },
+  {
+    text: '批量导入',
+    action: 'import',
+    type: 'default',
+    icon: 'el-icon-upload'
+  },
+  {
+    text: '导出',
+    action: 'export',
+    type: 'default',
+    icon: 'el-icon-download'
+  },
+  {
+    text: '删除',
+    action: 'delete',
+    type: 'danger',
+    icon: 'el-icon-delete',
+    disabled: true         // 可选：禁用状态
+  }
+]
+```
+
+#### 事件处理
+
+ActionButton组件会将按钮的 `action` 值作为参数发送给父组件的事件处理函数：
+
+```javascript
+methods: {
+  handlePageActionTriggered(action) {
+    // action 参数直接是按钮配置中的 action 字符串值
+    switch (action) {
+      case 'add':
+        this.showAddDialog()
+        break
+      case 'import':
+        this.showImportDialog()
+        break
+      case 'export':
+        this.exportData()
+        break
+      case 'delete':
+        this.handleBatchDelete()
+        break
+      default:
+        console.log('Unknown action:', action)
+    }
+  }
+}
+```
+
+#### 常见错误配置
+
+**❌ 错误示例**：
+```javascript
+// 错误：使用了 label 和 key 属性
+pageActions: [
+  { label: '新增', key: 'add', type: 'primary' }  // 不会显示文字
+]
+```
+
+**✅ 正确示例**：
+```javascript
+// 正确：使用 text 和 action 属性
+pageActions: [
+  { text: '新增', action: 'add', type: 'primary' }  // 正确显示
+]
+```
+
 ### 3.3 事件处理机制
 
 页面组件监听由 `FilterBarTablePageLayout` 组件 emit 的事件，以执行相应的业务逻辑。`ResourceClaim.vue` 中处理的主要事件包括：
 
 - **`@search="handleFilter"`**: 当顶部搜索栏（通常内嵌 `SearchBar`）触发表单搜索时调用 `handleFilter` 方法。
 - **`@reset="resetFilters"`**: 当顶部搜索栏重置时调用。
-- **`@action="handleTopAction"`**: 当点击顶部操作按钮（由 `action-buttons` 配置生成）时调用。
+- **`@action="handleTopAction"`**: 当点击顶部操作按钮（由 `action-buttons` 配置生成）时调用。事件参数为按钮配置中的 `action` 字符串值。
 - **`@table-action="handleRowAction"`**: (如果使用布局组件默认的行操作机制) 当点击行操作按钮时调用。在 `ResourceClaim.vue` 中，行操作通过 `#table-action` 插槽自定义，因此该事件可能不直接使用。
 - **`@pagination="fetchData"`**: 当分页组件的页码或每页条数变化时调用 `fetchData` 方法。
 - **`@selection-change="handleSelectionChange"`**: 当表格行的勾选状态发生变化时调用。
@@ -283,8 +376,8 @@ export default {
         // ...
       ],
       pageActions: [ // 顶部操作按钮
-        { label: '批量认领', key: 'batchClaim', type: 'primary', icon: 'el-icon-check' },
-        { label: '导出列表', key: 'export', icon: 'el-icon-download' },
+        { text: '批量认领', action: 'batchClaim', type: 'primary', icon: 'el-icon-check' },
+        { text: '导出列表', action: 'export', icon: 'el-icon-download' },
       ],
       tableColumnConfig: [ // 表格列配置
         { prop: 'resourceName', label: '资源名称', minWidth: 200 },
@@ -369,15 +462,15 @@ export default {
       this.loadData();
     },
     handlePageActionTriggered(action) {
-      console.log('Page action:', action.key);
-      if (action.key === 'batchClaim') {
+      console.log('Page action:', action);
+      if (action === 'batchClaim') {
         if (this.selectedTableRows.length === 0) {
           this.$message.warning('请至少选择一项进行批量认领');
           return;
         }
         // 执行批量认领逻辑...
         this.$message.success(`对 ${this.selectedTableRows.length} 项执行批量认领`);
-      } else if (action.key === 'export') {
+      } else if (action === 'export') {
         // 执行导出逻辑
         this.$message.info('执行导出...');
       }
