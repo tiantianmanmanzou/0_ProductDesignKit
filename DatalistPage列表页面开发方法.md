@@ -94,7 +94,7 @@
 - **`search-items`**: 顶部搜索栏的字段配置数组 (e.g., `searchConfig` data property)。
 - **`initial-form-data`**: 筛选表单的初始数据对象 (e.g., `filters` data property)。
 - **`action-buttons`**: 页面顶部操作按钮的配置数组 (e.g., `mainActions` for "导入", "导出", "删除")。
-- **`table-columns`**: 表格列定义的配置数组 (e.g., `columnConfig`, 定义了 `prop`, `label`, `width`, `minWidth`, `slot` 等)。
+- **`table-columns`**: 表格列定义的配置数组 (e.g., `columnConfig`, 定义了 `prop`, `label`, `width`, `slot` 等)。
 - **`table-data`**: 当前页需要显示的表格数据数组 (e.g., `tableData` data property)。
 - **`loading`**: 控制表格加载状态的布尔值。
 - **`total`**: 数据总条目数，用于分页 (e.g., `pagination.total`)。
@@ -102,82 +102,13 @@
 - **`show-selection` / `show-index`**: 是否显示表格复选框和序号列。
 - **`show-table-action` / `action-width`**: 是否显示表格行操作列及其宽度。
 
-#### 3.2.1 表格列宽配置规范 (CRITICAL)
-
-**重要**: 为确保表格列宽能够自适应并均匀分布，所有列配置必须遵循以下规范：
-
-**✅ 推荐的列宽配置方式**：
-```javascript
-columnConfig: [
-  // ✅ 推荐：使用 minWidth 实现自适应列宽
-  { prop: 'fieldName', label: '字段名称', minWidth: 120 },
-  { prop: 'fieldComment', label: '中文名称', minWidth: 120 },
-  { prop: 'dataType', label: '数据类型', minWidth: 100 },
-  
-  // ✅ 推荐：对于内容较长的列，可以设置更大的 minWidth
-  { prop: 'description', label: '描述信息', minWidth: 200 },
-  
-  // ✅ 推荐：对于状态、操作等固定宽度列，可以使用 width
-  { prop: 'status', label: '状态', width: 80 },
-  { prop: 'action', label: '操作', width: 120 }
-]
-```
-
-**❌ 避免的配置方式**：
-```javascript
-columnConfig: [
-  // ❌ 避免：所有列都使用固定 width，会导致列宽无法自适应
-  { prop: 'fieldName', label: '字段名称', width: 180 },
-  { prop: 'fieldComment', label: '中文名称', width: 180 },
-  
-  // ❌ 避免：minWidth 设置过大，在小屏幕上会导致水平滚动
-  { prop: 'dataType', label: '数据类型', minWidth: 300 }
-]
-```
-
-**配置原则**：
-1. **优先使用 `minWidth`**：让列宽能够根据容器大小自适应调整
-2. **合理设置最小宽度**：通常设置为 80-150px，确保内容可读性
-3. **固定宽度仅用于特殊列**：如状态标签、操作按钮等内容固定的列
-4. **启用溢出提示**：DataTable 组件已自动启用 `show-overflow-tooltip`
-5. **内容长度适配**：根据预期内容长度合理设置 minWidth 值
-
-**列宽自适应效果**：
-- 表格会根据容器宽度自动分配列宽
-- 每列都有最小宽度保证，不会被压缩得过小
-- 内容超出列宽时会显示省略号和悬停提示
-- 整体布局在不同屏幕尺寸下保持良好适应性
-
-#### 3.2.2 操作按钮配置规范
-
-**重要**: 操作按钮配置必须严格按照以下格式，以确保与 `ActionButton` 组件兼容：
-
-```javascript
-pageActions: [ // 顶部操作按钮配置
-  { 
-    text: '按钮显示文字',    // 必需：按钮显示的文字
-    action: 'actionKey',     // 必需：点击时传递的动作标识
-    type: 'primary',         // 可选：按钮类型 (primary, default, success, warning, danger, info, text)
-    size: 'medium',          // 可选：按钮尺寸 (large, medium, small, mini)
-    disabled: false          // 可选：是否禁用
-  }
-  // 注意：不要添加 icon 属性，操作按钮统一使用纯文字显示
-]
-```
-
-**配置要点**：
-- 使用 `text` 而不是 `label` 作为显示文字属性
-- 使用 `action` 而不是 `key` 作为动作标识属性  
-- **禁止使用 `icon` 属性**，所有操作按钮统一使用纯文字显示
-- 事件处理方法接收的参数是 `action` 的值（字符串），而不是整个按钮对象
-
 ### 3.3 事件处理机制
 
 页面组件监听由 `PageLayout_FilterBarTablePage` 组件 emit 的事件，以执行相应的业务逻辑。`ResourceClaim.vue` 中处理的主要事件包括：
 
 - **`@search="handleFilter"`**: 当顶部搜索栏（通常内嵌 `SearchBar`）触发表单搜索时调用 `handleFilter` 方法。
 - **`@reset="resetFilters"`**: 当顶部搜索栏重置时调用。
-- **`@action="handleTopAction"`**: 当点击顶部操作按钮（由 `action-buttons` 配置生成）时调用。**重要**: 事件参数是按钮配置中的 `action` 值（字符串），不是整个按钮对象。
+- **`@action="handleTopAction"`**: 当点击顶部操作按钮（由 `action-buttons` 配置生成）时调用。
 - **`@table-action="handleRowAction"`**: (如果使用布局组件默认的行操作机制) 当点击行操作按钮时调用。在 `ResourceClaim.vue` 中，行操作通过 `#table-action` 插槽自定义，因此该事件可能不直接使用。
 - **`@pagination="fetchData"`**: 当分页组件的页码或每页条数变化时调用 `fetchData` 方法。
 - **`@selection-change="handleSelectionChange"`**: 当表格行的勾选状态发生变化时调用。
@@ -446,8 +377,8 @@ export default {
         // ...
       ],
       pageActions: [ // 顶部操作按钮
-        { text: '批量认领', action: 'batchClaim', type: 'primary' },
-        { text: '导出列表', action: 'export', type: 'default' },
+        { label: '批量认领', key: 'batchClaim', type: 'primary', icon: 'el-icon-check' },
+        { label: '导出列表', key: 'export', icon: 'el-icon-download' },
       ],
       tableColumnConfig: [ // 表格列配置
         { prop: 'resourceName', label: '资源名称', minWidth: 200 },
