@@ -1,0 +1,89 @@
+# Pre-commit 配置示例
+# 文件位置: .pre-commit-config.yaml
+
+repos:
+  # Python 代码格式化和检查
+  - repo: https://github.com/psf/black
+    rev: 23.7.0
+    hooks:
+      - id: black
+        language_version: python3
+        files: ^backend/
+  
+  - repo: https://github.com/pycqa/flake8
+    rev: 6.0.0
+    hooks:
+      - id: flake8
+        files: ^backend/
+        args: ['--max-line-length=100', '--ignore=E203,W503']
+  
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        files: ^backend/
+        args: ['--profile=black']
+  
+  # TypeScript/JavaScript 格式化
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.0.0
+    hooks:
+      - id: prettier
+        files: ^frontend/.*\.(ts|tsx|js|jsx|json|css|md)$
+        exclude: ^frontend/(node_modules|dist|build)/
+  
+  # 通用检查
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+        exclude: ^frontend/package-lock\.json$
+      - id: check-merge-conflict
+      - id: debug-statements
+  
+  # Excel2Doc 自定义检查
+  - repo: local
+    hooks:
+      # 命名规范检查
+      - id: naming-convention-check
+        name: Excel2Doc命名规范检查
+        entry: python
+        args: [0_ProductDesignKit/review/scripts/check_naming_convention.py]
+        language: system
+        pass_filenames: false
+        stages: [commit]
+      
+      # API一致性检查
+      - id: api-consistency-check
+        name: Excel2Doc API一致性检查
+        entry: python
+        args: [0_ProductDesignKit/review/scripts/check_api_consistency.py]
+        language: system
+        pass_filenames: false
+        stages: [commit]
+      
+      # 枚举使用分析（仅在相关文件变更时）
+      - id: enum-usage-analysis
+        name: Excel2Doc枚举使用分析
+        entry: python
+        args: [0_ProductDesignKit/review/scripts/enum_usage_analyzer.py]
+        language: system
+        files: \.(py|ts|tsx)$
+        pass_filenames: false
+        stages: [manual]  # 手动触发，避免每次提交都运行
+
+# Pre-commit 配置选项
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
+
+    for more information, see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_branch: ''
+  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: weekly
+  skip: []
+  submodules: false

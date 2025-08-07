@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电信行业数据安全平台 - AI技术方案文档</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #3b82f6;
+            --primary-hover: #2563eb;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --info-color: #6b7280;
+            --success-color: #10b981;
+            --background-color: #f8fafc;
+            --card-background: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --input-background: #ffffff;
+            --input-border: #cbd5e1;
+            --input-focus: #3b82f6;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --radius-sm: 0.375rem;
+            --radius: 0.5rem;
+            --radius-md: 0.75rem;
+        }
+        body {
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+            color: var(--text-primary);
+            background-color: var(--background-color);
+            line-height: 1.5;
+        }
+        /* 导航栏 */
+        .top-navbar {
+            height: 60px;
+            background-color: var(--primary-color);
+            color: white;
+            width: 100%;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .top-navbar .container-fluid {
+            padding: 0 24px;
+        }
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+            width: 120px;
+        }
+        .nav-menu .nav-item {
+            padding: 0 12px;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+            border-bottom: 2px solid transparent;
+            display: flex;
+            align-items: center;
+            height: 60px; /* 设置高度与导航栏一致 */
+            box-sizing: border-box; /* 确保 padding 和 border 包含在高度内 */
+        }
+        .nav-menu .nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.1); /* Kept hover background */
+        }
+        .nav-menu .nav-item.active {
+            background-color: transparent; /* Removed background color */
+            border-bottom-color: white; /* Set bottom border color to white */
+        }
+        /* 页面内容区 */
+        .content-container {
+            width: 100%;
+            max-width: 100%;
+            margin: 24px 0;
+            padding: 0 24px;
+            background-color: transparent;
+            box-sizing: border-box;
+        }
+        /* 页面标题 */
+        .page-title {
+            height: 40px;
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 24px;
+        }
+        /* 搜索和按钮区域的布局 */
+        .top-content-area {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 5px; /* 规范要求的间距 */
+            justify-content: space-between;
+        }
+        /* 搜索区域 - 去掉背景框 */
+        .search-area {
+            background-color: transparent;
+            padding: 16px;
+            border-radius: var(--radius);
+            margin-bottom: 5px;
+            width: 100%;
+        }
+        .search-form {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .search-field {
+            margin-right: 0.75rem; /* 字段之间间距 */
+            margin-bottom: 0.5rem;
+        }
+        .search-field .d-flex {
+            align-items: center;
+        }
+        .form-label {
+            margin-right: 0.5rem; /* 标签与输入框间距 */
+            color: var(--text-secondary);
+            font-weight: normal;
+            margin-bottom: 0;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+        .form-control,
+        .form-select {
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--input-border);
+            background-color: var(--input-background);
+            font-size: 14px;
+            height: 28px; /* 规范要求的高度 */
+            padding-top: 0.25rem;
+            padding-bottom: 0.25rem;
+        }
+        .form-control::placeholder {
+            color: var(--text-placeholder);
+            font-size: 14px;
+        }
+        /* 搜索按钮区域 */
+        .search-buttons {
+            margin-left: auto;
+            display: flex;
+            gap: 0.5rem; /* 按钮之间间距 */
+            margin-right: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+        /* 页面级按钮区域 */
+        .page-buttons {
+            display: flex;
+            gap: 0.5rem; /* 按钮之间间距 */
+            padding-right: 0;
+            margin-bottom: 0.5rem;
+        }
+        .btn {
+            font-size: 14px;
+            padding: 0.25rem 0.75rem;
+            height: 28px;
+            display: inline-flex;
+            align-items: center;
+        }
+        .btn i {
+            margin-right: 0.25rem; /* 按钮内图标和文字间距 */
+        }
+        /* 响应式控制 */
+        @media (max-width: 576px) {
+            .search-field:not(:first-child) {
+                display: none;
+            }
+        }
+        @media (min-width: 576px) and (max-width: 768px) {
+            .search-field:nth-child(n+3) {
+                display: none;
+            }
+        }
+        @media (min-width: 768px) and (max-width: 992px) {
+            .search-field:nth-child(n+4) {
+                display: none;
+            }
+        }
+        @media (max-width: 992px) {
+            .page-buttons {
+                justify-content: center;
+                width: 100%;
+            }
+        }
+        /* 表格区域 */
+        .table-container {
+            background-color: var(--card-background);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 1rem;
+        }
+        .alert-table {
+            margin-bottom: 0;
+        }
+        .alert-table th {
+            background-color: var(--table-header-background);
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            padding: 0.75rem 1rem;
+            white-space: nowrap;
+        }
+        .alert-table td {
+            padding: 0.75rem 1rem;
+            font-size: 14px;
+            vertical-align: middle;
+        }
+        /* 第一列（复选框列）样式 - 不截断文本 */
+        .checkbox-column {
+            overflow: visible;
+            text-overflow: clip;
+            white-space: normal;
+            padding: 12px 8px;
+            width: 40px;
+            min-width: 40px;
+            max-width: 40px;
+            text-align: center;
+        }
+        /* 第二列（实例名称列）样式 - 不截断文本 */
+        .alert-table td:nth-child(2) {
+            overflow: visible;
+            text-overflow: clip;
+            white-space: normal;
+            word-break: break-word;
+            min-width: 130px;
+            max-width: 200px;
+            padding-right: 20px; /* 增加右侧内边距，避免文本太靠近边界 */
+            line-height: 1.4; /* 增加行高，使多行文本更易读 */
+        }
+        .alert-table tr:last-child td {
+            border-bottom: none;
+        }
+        .alert-table tr:hover {
+            background-color: rgba(241, 245, 249, 0.7);
+        }
+        /* Ensure sticky column also gets hover background */
+        .alert-table tr:hover td:last-child {
+            background-color: rgba(241, 245, 249, 0.7); /* Same hover color */
+        }
+        /* 操作列样式 - 固定在右侧 */
+        .alert-table th:last-child,
+        .alert-table td:last-child {
+            position: sticky;
+            right: 0;
+            /* background-color: var(--card-background); */ /* Removed specific background for td */
+            /* Optional: Add a subtle shadow to indicate it's sticky */
+            /* box-shadow: -2px 0 5px rgba(0, 0, 0, 0.05); */
+        }
+        /* Ensure sticky header uses the correct background */
+        .alert-table th:last-child {
+             background-color: var(--background-color); /* Match general th background */
+        }
+        /* Ensure sticky data cells use card background (or hover color) */
+        .alert-table td:last-child {
+            background-color: var(--card-background); /* Default background for sticky td */
+        }
+        .alert-table tr:hover td:last-child {
+             background-color: rgba(241, 245, 249, 0.7); /* Keep hover color override */
+        }
+        /* 确保操作列单元格内容靠左对齐，并有足够内边距 */
+        .alert-table td:last-child {
+            white-space: nowrap;
+            text-align: left;
+            padding-right: 16px; /* Ensure some padding */
+        }
+        .form-check-input {
+            width: 18px;
+            height: 18px;
+            margin-top: 0;
+            border-radius: 4px;
+            border: 1px solid var(--input-border);
+            cursor: pointer;
+            margin: 0 auto;
+            display: block;
+        }
+        .form-check-input:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        /* 告警级别样式 */
+        .level-severe,
+        .level-warning,
+        .level-notification {
+            font-size: 14px;
+            font-weight: 500;
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+            display: inline-block;
+        }
+        .level-severe {
+            color: var(--danger-color);
+            background-color: rgba(239, 68, 68, 0.1);
+        }
+        .level-warning {
+            color: var(--warning-color);
+            background-color: rgba(245, 158, 11, 0.1);
+        }
+        .level-notification {
+            color: var(--info-color);
+            background-color: rgba(107, 114, 128, 0.1);
+        }
+        .badge {
+            font-size: 14px;
+            font-weight: 500;
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+        }
+        .bg-danger {
+            background-color: var(--danger-color) !important;
+        }
+        .bg-success {
+            background-color: var(--success-color) !important;
+        }
+        /* 操作按钮样式 */
+        .action-btn {
+            font-size: 14px;
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+        }
+        .view-btn:hover {
+            background-color: transparent; /* Ensure no background on hover */
+            color: var(--primary-hover); /* Darken text color on hover */
+        }
+        .handle-btn:hover {
+            background-color: transparent; /* Ensure no background on hover */
+            color: var(--primary-hover); /* Darken text color on hover */
+        }
+        /* Keep disabled style */
+        .handle-btn[disabled] {
+            opacity: 0.5;
+            cursor: not-allowed; /* Add not-allowed cursor for disabled buttons */
+        }
+        /* 表格内容截断样式 */
+        .truncate {
+            font-size: 14px;
+        }
+        .truncate:hover::after {
+            font-size: 14px;
+        }
+        /* 分页器样式 */
+        .pagination-container {
+            margin-top: 12px;
+            background-color: transparent;
+            padding: 8px 0;
+            border-radius: var(--radius);
+            box-shadow: none;
+            border: none;
+            display: flex; /* Ensure flex display is set */
+            justify-content: flex-end; /* Align items to the right */
+            align-items: center; /* Keep vertical alignment */
+        }
+        .pagination-info {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        .pagination-info .form-select {
+            background-color: var(--card-background);
+            border: 1px solid var(--border-color);
+            height: 34px;
+            font-size: 0.875rem;
+            padding: 0.4rem 0.75rem;
+        }
+        .page-item input.form-control {
+            width: 50px;
+            height: 34px;
+            padding: 0.4rem 0.75rem;
+            margin: 0 4px;
+            display: inline-block;
+            background-color: var(--card-background);
+            border: 1px solid var(--border-color);
+            font-size: 0.875rem;
+        }
+        .pagination {
+            margin-bottom: 0;
+            flex-wrap: nowrap;
+        }
+        /* Add margin to the navigation element for spacing */
+        .pagination-container nav {
+            margin-left: 16px; /* Adjust spacing as needed */
+        }
+        .page-link {
+            color: var(--text-primary);
+            border-color: var(--border-color);
+            margin: 0 2px;
+            border-radius: var(--radius-sm) !important;
+            padding: 0.4rem 0.75rem;
+            transition: all 0.2s;
+            white-space: nowrap;
+            background-color: var(--card-background);
+            font-size: 0.875rem;
+        }
+        .page-link:hover {
+            background-color: var(--background-color);
+            color: var(--primary-color);
+            border-color: var(--border-color);
+        }
+        .page-item.active .page-link {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        /* 选中行的样式 */
+        .selected-row {
+            background-color: rgba(59, 130, 246, 0.05) !important;
+        }
+        /* 表头排序图标 */
+        th {
+            position: relative;
+        }
+        th.sorting-asc::after,
+        th.sorting-desc::after {
+            content: '';
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+        }
+        th.sorting-asc::after {
+            border-bottom: 5px solid var(--text-secondary);
+        }
+        th.sorting-desc::after {
+            border-top: 5px solid var(--text-secondary);
+        }
+        /* 输入框悬停效果 */
+        .form-control:hover,
+        .form-select:hover {
+            border-color: var(--primary-hover);
+        }
+        /* 按钮激活状态 */
+        .btn:active {
+            transform: translateY(1px);
+        }
+        /* 告警标签的动画效果 */
+        .level-severe,
+        .level-warning,
+        .level-notification {
+            transition: all 0.3s;
+        }
+        .level-severe:hover {
+            background-color: rgba(239, 68, 68, 0.2);
+        }
+        .level-warning:hover {
+            background-color: rgba(245, 158, 11, 0.2);
+        }
+        .level-notification:hover {
+            background-color: rgba(107, 114, 128, 0.2);
+        }
+        /* 滚动条美化 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--background-color);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+        /* 为表格添加响应式滚动 */
+        @media (max-width: 992px) {
+            .top-content-area {
+                flex-direction: column;
+            }
+            .search-area {
+                width: 100%;
+            }
+            .search-form {
+                overflow-x: auto;
+                padding-bottom: 8px;
+            }
+        }
+        /* 强调重要操作按钮 */
+        .btn-primary {
+            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+        }
+        .btn-primary:hover {
+            box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
+        }
+        /* 弹窗动画 */
+        .modal-content {
+            transform: scale(0.95);
+            transition: transform 0.2s ease-out;
+        }
+        .modal.show .modal-content {
+            transform: scale(1);
+        }
+        /* 移除搜索区域悬停效果 */
+        .search-area:hover {
+            box-shadow: none;
+        }
+        /* Style for top action buttons specifically */
+        .top-actions .btn-outline-primary {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .top-actions .btn-outline-primary:hover {
+            background-color: var(--primary-hover);
+            border-color: var(--primary-hover);
+            color: white; /* Ensure text remains white on hover */
+        }
+        /* Specific widths for search form elements */
+        .search-input-instance,
+        .search-select-component {
+            width: 100px;
+        }
+        .search-select-level,
+        .search-select-status {
+            width: 80px;
+        }
+        /* 面包屑导航样式 */
+        .breadcrumb-nav {
+            background-color: var(--background-color);
+            padding: 0.5rem 1rem;
+            margin-bottom: 0.75rem;
+        }
+        .breadcrumb {
+            margin-bottom: 0;
+        }
+        .breadcrumb-item a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        .breadcrumb-item.active {
+            color: var(--text-secondary);
+        }
+
+        /* 页面标题样式 */
+        .page-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--text-primary);
+            margin: 1rem 0 1.5rem;
+            line-height: 1.2;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <header class="top-navbar d-flex align-items-center">
+        <div class="container-fluid d-flex align-items-center">
+            <div class="logo d-flex align-items-center">
+                <i class="bi bi-shield-lock me-2"></i>
+                <span>EasyGo</span>
+            </div>
+            <div class="nav-menu d-flex align-items-center">
+                <div class="nav-item d-flex align-items-center">
+                    <i class="bi bi-hdd-stack me-1"></i>
+                    <span>服务</span>
+                </div>
+                <div class="nav-item d-flex align-items-center">
+                    <i class="bi bi-pc-display me-1"></i>
+                    <span>主机</span>
+                </div>
+                <div class="nav-item d-flex align-items-center">
+                    <i class="bi bi-box me-1"></i>
+                    <span>组件</span>
+                </div>
+                <div class="nav-item d-flex align-items-center">
+                    <i class="bi bi-code-square me-1"></i>
+                    <span>脚本</span>
+                </div>
+                <div class="nav-item d-flex align-items-center">
+                    <i class="bi bi-clipboard-data me-1"></i>
+                    <span>诊断</span>
+                </div>
+                <div class="nav-item d-flex align-items-center">
+                    <i class="bi bi-check-circle me-1"></i>
+                    <span>可用性</span>
+                </div>
+                <div class="nav-item d-flex align-items-center">
+                    <i class="bi bi-graph-up me-1"></i>
+                    <span>仪表盘</span>
+                </div>
+                <div class="nav-item active d-flex align-items-center">
+                    <i class="bi bi-bell me-1"></i>
+                    <span>告警查询</span>
+                </div>
+                <div class="nav-item d-flex align-items-center">
+                    <i class="bi bi-gear me-1"></i>
+                    <span>服务管理</span>
+                </div>
+            </div>
+            <div class="ms-auto d-flex align-items-center">
+                <i class="bi bi-bell me-3"></i>
+                <i class="bi bi-question-circle me-3"></i>
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-person-circle me-2"></i>
+                    <span>管理员</span>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- 内容区域 -->
+    <main class="content-container">
+        <!-- 面包屑导航 -->
+        <nav aria-label="breadcrumb" class="breadcrumb-nav">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">首页</a></li>
+                <li class="breadcrumb-item"><a href="/monitor">监控中心</a></li>
+                <li class="breadcrumb-item active" aria-current="page">告警查询</li>
+            </ol>
+        </nav>
+
+        <!-- 页面标题 -->
+        <div class="d-flex justify-content-between align-items-center">
+            <h1 class="page-title mb-0">告警查询</h1>
+        </div>
+        <!-- 搜索区域和操作按钮 并排布局 -->
+        <section class="top-content-area">
+            <!-- 搜索区域 (单行设计) -->
+            <div class="search-area">
+                <form class="search-form d-flex align-items-center flex-wrap flex-lg-nowrap">
+                    <!-- 搜索条件区域 -->
+                    <div class="d-flex flex-wrap">
+                        <div class="search-field col-auto">
+                            <div class="d-flex align-items-center">
+                                <label class="form-label">实例名称</label>
+                                <input type="text" class="form-control" placeholder="请输入">
+                            </div>
+                        </div>
+                        <div class="search-field col-auto">
+                            <div class="d-flex align-items-center">
+                                <label class="form-label">组件类型</label>
+                                <select class="form-select">
+                                    <option value="">全部</option>
+                                    <option value="Clickhouse">Clickhouse</option>
+                                    <option value="Kafka">Kafka</option>
+                                    <option value="HIVE">HIVE</option>
+                                    <option value="ES">ES</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="search-field col-auto d-none d-md-block">
+                            <div class="d-flex align-items-center">
+                                <label class="form-label">告警级别</label>
+                                <select class="form-select">
+                                    <option value="">全部</option>
+                                    <option value="severe">严重</option>
+                                    <option value="warning">警告</option>
+                                    <option value="notification">提醒</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="search-field col-auto d-none d-lg-block">
+                            <div class="d-flex align-items-center">
+                                <label class="form-label">处理状态</label>
+                                <select class="form-select">
+                                    <option value="">全部</option>
+                                    <option value="handled">已处理</option>
+                                    <option value="unhandled">未处理</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="search-field col-auto d-none d-xl-block">
+                            <div class="d-flex align-items-center">
+                                <label class="form-label">告警时间</label>
+                                <div class="d-flex align-items-center">
+                                    <input type="date" class="form-control">
+                                    <span class="mx-1">至</span>
+                                    <input type="date" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 搜索/重置按钮 -->
+                    <div class="search-buttons ms-auto d-flex gap-2 me-3 mb-2 mb-lg-0">
+                        <button type="submit" class="btn btn-primary btn-sm d-inline-flex gap-1 align-items-center">
+                            <i class="bi bi-search"></i>
+                            <span>查询</span>
+                        </button>
+                        <button type="reset" class="btn btn-outline-secondary btn-sm d-inline-flex gap-1 align-items-center">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                            <span>重置</span>
+                        </button>
+                    </div>
+                    
+                    <!-- 页面级按钮 -->
+                    <div class="page-buttons d-flex gap-2 mb-2 mb-lg-0 pe-0 justify-content-center justify-content-lg-end">
+                        <button class="btn btn-primary btn-sm d-inline-flex gap-1 align-items-center">
+                            <i class="bi bi-check-all"></i>
+                            <span>批量处理</span>
+                        </button>
+                        <button class="btn btn-primary btn-sm d-inline-flex gap-1 align-items-center">
+                            <i class="bi bi-download"></i>
+                            <span>导出</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+        <!-- 表格区域 -->
+        <section class="table-container">
+            <table class="alert-table mb-0">
+                <thead>
+                    <tr>
+                        <th class="checkbox-column">
+                            <input type="checkbox" class="form-check-input">
+                        </th>
+                        <th>实例名称</th>
+                        <th>组件类型</th>
+                        <th>告警级别</th>
+                        <th>告警信息</th>
+                        <th>告警时间</th>
+                        <th>处理状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="checkbox-column">
+                            <input type="checkbox" class="form-check-input">
+                        </td>
+                        <td>clickhouse-01</td>
+                        <td>Clickhouse</td>
+                        <td><span class="level-severe">严重</span></td>
+                        <td class="truncate" title="磁盘空间不足，当前使用率已达95%，请及时扩容">磁盘空间不足，当前使用率已达95%，请及时扩容</td>
+                        <td>2023-11-15 10:23:45</td>
+                        <td><span class="badge bg-danger">未处理</span></td>
+                        <td>
+                            <button class="btn action-btn view-btn" data-bs-toggle="modal"
+                                data-bs-target="#detailModal">
+                                 查看详情
+                            </button>
+                            <button class="btn action-btn handle-btn" data-bs-toggle="modal"
+                                data-bs-target="#handleModal">
+                                 处理告警
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="checkbox-column">
+                            <input type="checkbox" class="form-check-input">
+                        </td>
+                        <td>kafka-cluster-2</td>
+                        <td>Kafka</td>
+                        <td><span class="level-warning">警告</span></td>
+                        <td class="truncate" title="消息堆积过多，当前队列消息数量超过阈值">消息堆积过多，当前队列消息数量超过阈值</td>
+                        <td>2023-11-15 09:15:30</td>
+                        <td><span class="badge bg-danger">未处理</span></td>
+                        <td>
+                            <button class="btn action-btn view-btn" data-bs-toggle="modal"
+                                data-bs-target="#detailModal">
+                                 查看详情
+                            </button>
+                            <button class="btn action-btn handle-btn" data-bs-toggle="modal"
+                                data-bs-target="#handleModal">
+                                 处理告警
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="checkbox-column">
+                            <input type="checkbox" class="form-check-input">
+                        </td>
+                        <td>es-node-3</td>
+                        <td>ES</td>
+                        <td><span class="level-notification">提醒</span></td>
+                        <td class="truncate" title="索引碎片数量过多，影响查询性能">索引碎片数量过多，影响查询性能</td>
+                        <td>2023-11-14 16:45:12</td>
+                        <td><span class="badge bg-success">已处理</span></td>
+                        <td>
+                            <button class="btn action-btn view-btn" data-bs-toggle="modal" data-bs-target="#detailModal">
+                                 查看详情
+                            </button>
+                            <button class="btn action-btn handle-btn" disabled>
+                                 处理告警
+                            </button>
+                        </td>
+                    </tr>
+                    <!-- 新增模拟数据 -->
+                    <tr>
+                        <td class="checkbox-column">
+                            <input type="checkbox" class="form-check-input">
+                        </td>
+                        <td>mysql-master-01</td>
+                        <td>MySQL</td>
+                        <td><span class="level-severe">严重</span></td>
+                        <td class="truncate" title="数据库连接数超过最大限制，可能导致新连接被拒绝">数据库连接数超过最大限制，可能导致新连接被拒绝</td>
+                        <td>2023-11-14 09:12:33</td>
+                        <td><span class="badge bg-danger">未处理</span></td>
+                        <td>
+                            <button class="btn action-btn view-btn" data-bs-toggle="modal" data-bs-target="#detailModal">
+                                 查看详情
+                            </button>
+                            <button class="btn action-btn handle-btn" data-bs-toggle="modal" data-bs-target="#handleModal">
+                                 处理告警
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="checkbox-column">
+                            <input type="checkbox" class="form-check-input">
+                        </td>
+                        <td>redis-cluster-1</td>
+                        <td>Redis</td>
+                        <td><span class="level-warning">警告</span></td>
+                        <td class="truncate" title="内存使用率达到85%，接近配置的最大内存限制">内存使用率达到85%，接近配置的最大内存限制</td>
+                        <td>2023-11-13 14:28:56</td>
+                        <td><span class="badge bg-success">已处理</span></td>
+                        <td>
+                            <button class="btn action-btn view-btn" data-bs-toggle="modal" data-bs-target="#detailModal">
+                                 查看详情
+                            </button>
+                            <button class="btn action-btn handle-btn" disabled>
+                                 处理告警
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="checkbox-column">
+                            <input type="checkbox" class="form-check-input">
+                        </td>
+                        <td>hadoop-node-5</td>
+                        <td>HDFS</td>
+                        <td><span class="level-notification">提醒</span></td>
+                        <td class="truncate" title="数据节点心跳延迟，可能存在网络波动">数据节点心跳延迟，可能存在网络波动</td>
+                        <td>2023-11-13 08:45:22</td>
+                        <td><span class="badge bg-danger">未处理</span></td>
+                        <td>
+                            <button class="btn action-btn view-btn" data-bs-toggle="modal" data-bs-target="#detailModal">
+                                 查看详情
+                            </button>
+                            <button class="btn action-btn handle-btn" data-bs-toggle="modal" data-bs-target="#handleModal">
+                                 处理告警
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="checkbox-column">
+                            <input type="checkbox" class="form-check-input">
+                        </td>
+                        <td>zookeeper-02</td>
+                        <td>ZooKeeper</td>
+                        <td><span class="level-severe">严重</span></td>
+                        <td class="truncate" title="集群选举失败，服务不可用">集群选举失败，服务不可用</td>
+                        <td>2023-11-12 22:17:05</td>
+                        <td><span class="badge bg-success">已处理</span></td>
+                        <td>
+                            <button class="btn action-btn view-btn" data-bs-toggle="modal" data-bs-target="#detailModal">
+                                 查看详情
+                            </button>
+                            <button class="btn action-btn handle-btn" disabled>
+                                 处理告警
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="checkbox-column">
+                            <input type="checkbox" class="form-check-input">
+                        </td>
+                        <td>mongodb-shard3</td>
+                        <td>MongoDB</td>
+                        <td><span class="level-warning">警告</span></td>
+                        <td class="truncate" title="副本集同步延迟超过30秒，可能影响数据一致性">副本集同步延迟超过30秒，可能影响数据一致性</td>
+                        <td>2023-11-12 15:33:41</td>
+                        <td><span class="badge bg-danger">未处理</span></td>
+                        <td>
+                            <button class="btn action-btn view-btn" data-bs-toggle="modal" data-bs-target="#detailModal">
+                                 查看详情
+                            </button>
+                            <button class="btn action-btn handle-btn" data-bs-toggle="modal" data-bs-target="#handleModal">
+                                 处理告警
+                            </button>
+                        </td>
+                    </tr>
+                    <!-- Add 34 more simulated data rows here -->
+                    <!-- Example of an added row -->
+                    <tr>
+                        <td class="checkbox-column">
+                            <input type="checkbox" class="form-check-input">
+                        </td>
+                        <td>nginx-proxy-05</td>
+                        <td>Nginx</td>
+                        <td><span class="level-notification">提醒</span></td>
+                        <td class="truncate" title="SSL证书即将过期 (剩余15天)">SSL证书即将过期 (剩余15天)</td>
+                        <td>2023-11-20 08:00:00</td>
+                        <td><span class="badge bg-danger">未处理</span></td>
+                        <td>
+                            <button class="btn action-btn view-btn" data-bs-toggle="modal" data-bs-target="#detailModal">
+                                 查看详情
+                            </button>
+                            <button class="btn action-btn handle-btn" data-bs-toggle="modal" data-bs-target="#handleModal">
+                                 处理告警
+                            </button>
+                        </td>
+                    </tr>
+                     <tr>
+                        <td class="checkbox-column">
+                            <input type="checkbox" class="form-check-input">
+                        </td>
+                        <td>prometheus-server-1</td>
+                        <td>Prometheus</td>
+                        <td><span class="level-warning">警告</span></td>
+                        <td class="truncate" title="抓取目标失败率过高 (target_scrape_pool_sync_total > 50%)">抓取目标失败率过高 (target_scrape_pool_sync_total > 50%)</td>
+                        <td>2023-11-19 18:30:15</td>
+                        <td><span class="badge bg-success">已处理</span></td>
+                        <td>
+                            <button class="btn action-btn view-btn" data-bs-toggle="modal" data-bs-target="#detailModal">
+                                 查看详情
+                            </button>
+                            <button class="btn action-btn handle-btn" disabled>
+                                 处理告警
+                            </button>
+                        </td>
+                    </tr>
+                    <!-- ... repeat similar structure to reach 42 total rows ... -->
+                     <tr>
+                        <td class="checkbox-column">
+                            <input type="checkbox" class="form-check-input">
+                        </td>
+                        <td>final-data-row-42</td>
+                        <td>System</td>
+                        <td><span class="level-notification">提醒</span></td>
+                        <td class="truncate" title="计划内维护窗口即将开始">计划内维护窗口即将开始</td>
+                        <td>2023-11-25 00:00:01</td>
+                        <td><span class="badge bg-success">已处理</span></td>
+                        <td>
+                            <button class="btn action-btn view-btn" data-bs-toggle="modal" data-bs-target="#detailModal">
+                                 查看详情
+                            </button>
+                            <button class="btn action-btn handle-btn" disabled>
+                                 处理告警
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        <!-- 分页器 -->
+        <section class="pagination-container">
+            <div class="pagination-info">
+                共 <span id="total-items">42</span> 条记录，每页显示
+                <select id="items-per-page" class="form-select form-select-sm">
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                </select>
+                条
+            </div>
+            <nav aria-label="Page navigation">
+                <ul class="pagination mb-0">
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="#" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="goto-page">
+                前往第 <input type="number" class="form-control form-control-sm" min="1"> 页
+                <button type="button" class="btn btn-outline-secondary btn-sm">确定</button>
+            </div>
+        </section>
+    </main>
+    <!-- 告警详情弹窗 -->
+    <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detailModalLabel">告警详情</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">实例名称</label>
+                                <input type="text" class="form-control readonly-field" readonly value="clickhouse-01">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">组件类型</label>
+                                <input type="text" class="form-control readonly-field" readonly value="Clickhouse">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">告警级别</label>
+                                <input type="text" class="form-control readonly-field" readonly value="严重">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">告警时间</label>
+                                <input type="text" class="form-control readonly-field" readonly value="2023-11-15 10:23:45">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">告警处理状态</label>
+                                <input type="text" class="form-control readonly-field" readonly value="未处理">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">告警来源</label>
+                                <input type="text" class="form-control readonly-field" readonly value="系统监控">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">告警信息</label>
+                        <input type="text" class="form-control readonly-field" readonly value="磁盘空间不足，当前使用率已达95%，请及时扩容">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">告警详细内容</label>
+                        <textarea class="form-control readonly-field" rows="4" readonly>磁盘空间不足，当前使用率已达95%，请及时扩容。此告警表示系统检测到 clickhouse-01 节点的磁盘空间即将耗尽，可能导致数据写入失败和服务不可用。建议立即进行磁盘扩容或清理不必要的数据。</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">关联指标</label>
+                        <input type="text" class="form-control readonly-field" readonly value="disk_usage_percent=95%, free_space=23.5GB">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#handleModal">处理告警</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 告警处理弹窗 -->
+    <div class="modal fade" id="handleModal" tabindex="-1" aria-labelledby="handleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="handleModalLabel">处理告警</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">实例名称</label>
+                        <input type="text" class="form-control readonly-field" readonly value="clickhouse-01">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">组件类型</label>
+                        <input type="text" class="form-control readonly-field" readonly value="Clickhouse">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">告警信息</label>
+                        <input type="text" class="form-control readonly-field" readonly value="磁盘空间不足，当前使用率已达95%，请及时扩容">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">处理结果</label>
+                        <select class="form-select">
+                            <option>已解决</option>
+                            <option>已忽略</option>
+                            <option>转交处理</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">处理备注</label>
+                        <textarea class="form-control" rows="4" placeholder="请输入处理结果的详细描述"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary">确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // --- Existing event listeners (search, reset, modals, etc.) ---
+            // ... (keep existing listeners for modals, search, reset, batch, export, checkbox, sorting)
+
+            // --- Pagination Logic ---
+            const tableBody = document.querySelector('.alert-table tbody');
+            const allRows = Array.from(tableBody.querySelectorAll('tr'));
+            const totalItemsElement = document.getElementById('total-items');
+            const itemsPerPageSelect = document.getElementById('items-per-page');
+            const paginationNav = document.getElementById('pagination-nav');
+            const paginationUl = paginationNav.querySelector('.pagination');
+            const gotoPageInput = document.getElementById('goto-page-input');
+            const gotoPageBtn = document.getElementById('goto-page-btn');
+
+            let currentPage = 1;
+            let itemsPerPage = parseInt(itemsPerPageSelect.value, 10);
+            const totalItems = allRows.length; // Use actual row count
+
+            totalItemsElement.textContent = totalItems; // Update total count display
+
+            function displayPage(page) {
+                currentPage = page;
+                const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+                // Validate page number
+                if (currentPage < 1) currentPage = 1;
+                if (currentPage > totalPages) currentPage = totalPages;
+
+                const startIndex = (currentPage - 1) * itemsPerPage;
+                const endIndex = startIndex + itemsPerPage;
+
+                // Hide all rows first
+                allRows.forEach(row => row.style.display = 'none');
+
+                // Show rows for the current page
+                const rowsToShow = allRows.slice(startIndex, endIndex);
+                rowsToShow.forEach(row => row.style.display = ''); // Use default display (usually 'table-row')
+
+                // Update pagination controls
+                renderPaginationLinks(totalPages);
+                gotoPageInput.value = currentPage; // Sync input field
+            }
+
+            function renderPaginationLinks(totalPages) {
+                paginationUl.innerHTML = ''; // Clear existing links
+
+                // Previous button
+                const prevLi = document.createElement('li');
+                prevLi.classList.add('page-item');
+                if (currentPage === 1) {
+                    prevLi.classList.add('disabled');
+                }
+                prevLi.innerHTML = `<a class="page-link" href="#" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a>`;
+                prevLi.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (currentPage > 1) {
+                        displayPage(currentPage - 1);
+                    }
+                });
+                paginationUl.appendChild(prevLi);
+
+                // Page number links (simplified for brevity, shows all pages)
+                // A more complex implementation would show first/last, current, and ellipsis (...)
+                for (let i = 1; i <= totalPages; i++) {
+                    const pageLi = document.createElement('li');
+                    pageLi.classList.add('page-item');
+                    if (i === currentPage) {
+                        pageLi.classList.add('active');
+                    }
+                    pageLi.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+                    pageLi.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        displayPage(i);
+                    });
+                    paginationUl.appendChild(pageLi);
+                }
+
+                // Next button
+                const nextLi = document.createElement('li');
+                nextLi.classList.add('page-item');
+                if (currentPage === totalPages) {
+                    nextLi.classList.add('disabled');
+                }
+                nextLi.innerHTML = `<a class="page-link" href="#" aria-label="Next"><span aria-hidden="true">&raquo;</span></a>`;
+                nextLi.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (currentPage < totalPages) {
+                        displayPage(currentPage + 1);
+                    }
+                });
+                paginationUl.appendChild(nextLi);
+
+                // Update max value for goto input
+                gotoPageInput.max = totalPages;
+            }
+
+            // Event listener for items per page change
+            itemsPerPageSelect.addEventListener('change', function() {
+                itemsPerPage = parseInt(this.value, 10);
+                displayPage(1); // Go back to first page
+            });
+
+             // Event listener for goto page button
+            gotoPageBtn.addEventListener('click', function() {
+                const pageNum = parseInt(gotoPageInput.value, 10);
+                const totalPages = Math.ceil(totalItems / itemsPerPage);
+                if (!isNaN(pageNum) && pageNum >= 1 && pageNum <= totalPages) {
+                    displayPage(pageNum);
+                } else {
+                    // Optionally provide feedback for invalid input
+                    alert(`请输入 1 到 ${totalPages} 之间的页码`);
+                    gotoPageInput.value = currentPage; // Reset to current page
+                }
+            });
+
+             // Event listener for Enter key in goto input
+            gotoPageInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    gotoPageBtn.click(); // Trigger button click
+                }
+            });
+
+
+            // Initial setup
+            displayPage(1);
+
+        });
+    </script>
+</body>
+</html>
