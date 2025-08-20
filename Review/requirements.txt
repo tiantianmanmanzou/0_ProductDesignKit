@@ -1,7 +1,0 @@
-# Excel2Doc 检查工具依赖包
-# 基础依赖
-psycopg2-binary>=2.9.0  # PostgreSQL连接
-aiohttp>=3.8.0         # 异步HTTP请求（可选，用于运行时检查）
-
-# 代码分析
-ast-tools>=0.1.0       # AST解析工具（可选）
