@@ -1,0 +1,27 @@
+{
+    "files.associations": {
+        "*.ttml": "xml",
+        "*.ttss": "css"
+    },
+    "workbench.colorCustomizations": {
+        "statusBar.background": "#ffffff00",
+        "statusBar.foreground": "#FFFFFF"
+    },
+    "editor.fontFamily": "'SF Mono', 'Fira Code', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'WenQuanYi Micro Hei', 'Menlo', 'Monaco', 'Courier New', monospace",
+    "editor.fontSize": 14,
+    "editor.fontLigatures": true,
+    "terminal.integrated.fontFamily": "'SF Mono', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'WenQuanYi Micro Hei', 'Menlo', 'Monaco', 'Courier New', monospace",
+    "files.encoding": "utf8",
+    "files.autoGuessEncoding": true,
+    "markdown.preview.theme": "dark",
+    "markdown.styles": [
+        ".vscode/markdown-preview.css"
+    ],
+    "markdown.preview.breaks": true,
+    "markdown.preview.scrollEditorWithPreview": true,
+    "markdown.preview.scrollPreviewWithEditor": true,
+    "markdown.preview.markEditorSelection": true,
+    "markdown.extension.toc.levels": "1..6",
+    "markdown.extension.toc.orderedList": false,
+    "markdown.extension.toc.updateOnSave": true
+}
