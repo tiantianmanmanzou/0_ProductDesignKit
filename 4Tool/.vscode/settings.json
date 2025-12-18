@@ -7,10 +7,10 @@
         "statusBar.background": "#ffffff00",
         "statusBar.foreground": "#FFFFFF"
     },
-    "editor.fontFamily": "'SF Mono', 'Fira Code', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'WenQuanYi Micro Hei', 'Menlo', 'Monaco', 'Courier New', monospace",
+    "editor.fontFamily":  "Microsoft YaHei",
     "editor.fontSize": 14,
     "editor.fontLigatures": true,
-    "terminal.integrated.fontFamily": "'SF Mono', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'WenQuanYi Micro Hei', 'Menlo', 'Monaco', 'Courier New', monospace",
+    "terminal.integrated.fontFamily":  "Microsoft YaHei",
     "files.encoding": "utf8",
     "files.autoGuessEncoding": true,
     "markdown.preview.theme": "dark",
