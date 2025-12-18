@@ -36,7 +36,7 @@ class DocxToMarkdownConverter:
             paragraph: 段落对象
             
         Returns:
-            (is_heading, level): 是否为标题，标题级别(1-4)
+            (is_heading, level): 是否为标题，标题级别(1-6)
         """
         style_name = paragraph.style.name.lower()
         
@@ -51,6 +51,10 @@ class DocxToMarkdownConverter:
                 return (True, 3)
             elif 'heading 4' in style_name or style_name == 'heading4':
                 return (True, 4)
+            elif 'heading 5' in style_name or style_name == 'heading5':
+                return (True, 5)
+            elif 'heading 6' in style_name or style_name == 'heading6':
+                return (True, 6)
         
         # 检查中文标题样式
         if '标题' in style_name:
@@ -62,6 +66,10 @@ class DocxToMarkdownConverter:
                 return (True, 3)
             elif '标题 4' in style_name or style_name == '标题4':
                 return (True, 4)
+            elif '标题 5' in style_name or style_name == '标题5':
+                return (True, 5)
+            elif '标题 6' in style_name or style_name == '标题6':
+                return (True, 6)
         
         # 基于格式判断标题级别（字体大小和加粗）
         if paragraph.runs:
@@ -84,6 +92,10 @@ class DocxToMarkdownConverter:
                     return (True, 3)
                 elif size_pt >= 12:  # 四级标题
                     return (True, 4)
+                elif size_pt >= 10:  # 五级标题
+                    return (True, 5)
+                elif size_pt >= 8:  # 六级标题
+                    return (True, 6)
         
         return (False, 0)
     
