@@ -211,7 +211,7 @@ class DocxToMarkdownConverter:
 
 def main():
     """主函数"""
-    default_input_file = "/Users/zhangxy/GenAI/DocPilot/docs/yunnan01/低空标准化共享服务产品及能力开发项目COSMIC送审word-需求规格说明书(0916-汇总）.docx"
+    default_input_file = "/Users/zhangxy/1/1.docx"
 
     parser = argparse.ArgumentParser(
         description="将DOCX文档转换为Markdown格式，保留表格和标题层级关系"
