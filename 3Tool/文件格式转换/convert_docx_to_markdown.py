@@ -260,7 +260,7 @@ class DocxToMarkdownConverter:
             f.write(markdown_content)
         
         print(f"✅ 转换完成！")
-        print(f"📄 输入文件: {self.docx_path}")
+        print(f"📄 输入文件: {self.original_path}")
         print(f"📝 输出文件: {output_path}")
         print(f"📊 文档统计:")
         print(f"   - 段落数: {len(self.doc.paragraphs)}")
