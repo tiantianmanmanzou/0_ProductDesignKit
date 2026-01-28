@@ -7,11 +7,50 @@ DOCX to Markdown Converter
 
 import os
 import argparse
+import zipfile
+import tempfile
+import shutil
 from docx import Document
 from docx.oxml.text.paragraph import CT_P
 from docx.oxml.table import CT_Tbl
 from docx.table import _Cell, Table
 from docx.text.paragraph import Paragraph
+
+
+def convert_docm_to_docx(docm_path: str) -> str:
+    """
+    将DOCM文件转换为DOCX格式（临时文件）
+    DOCM是启用了宏的Word文档，需要移除宏才能被python-docx处理
+    
+    Args:
+        docm_path: DOCM文件路径
+        
+    Returns:
+        临时DOCX文件路径
+    """
+    # 创建临时目录
+    temp_dir = tempfile.mkdtemp()
+    temp_docx = os.path.join(temp_dir, "converted.docx")
+    
+    # 复制文件内容，但不包含宏
+    with zipfile.ZipFile(docm_path, 'r') as zip_in:
+        with zipfile.ZipFile(temp_docx, 'w', zipfile.ZIP_DEFLATED) as zip_out:
+            for item in zip_in.infolist():
+                data = zip_in.read(item.filename)
+                # 跳过宏相关文件
+                if item.filename.startswith('word/vbaProject.bin'):
+                    continue
+                if item.filename == '[Content_Types].xml':
+                    # 修改Content_Types.xml，将宏文档类型改为普通文档类型
+                    content = data.decode('utf-8')
+                    content = content.replace(
+                        'application/vnd.ms-word.document.macroEnabled.main+xml',
+                        'application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml'
+                    )
+                    data = content.encode('utf-8')
+                zip_out.writestr(item, data)
+    
+    return temp_docx
 
 
 class DocxToMarkdownConverter:
@@ -22,11 +61,30 @@ class DocxToMarkdownConverter:
         初始化转换器
         
         Args:
-            docx_path: DOCX文件路径
+            docx_path: DOCX文件路径（支持DOCX和DOCM格式）
         """
-        self.docx_path = docx_path
-        self.doc = Document(docx_path)
+        self.original_path = docx_path
+        self.temp_dir = None
+        self.temp_docx = None
+        
+        # 检查是否为宏启用文档
+        try:
+            self.doc = Document(docx_path)
+        except ValueError as e:
+            if 'macroEnabled' in str(e):
+                # 尝试转换为普通DOCX
+                self.temp_docx = convert_docm_to_docx(docx_path)
+                self.temp_dir = os.path.dirname(self.temp_docx)
+                self.doc = Document(self.temp_docx)
+            else:
+                raise
+        
         self.markdown_lines = []
+    
+    def cleanup(self):
+        """清理临时文件"""
+        if self.temp_dir and os.path.exists(self.temp_dir):
+            shutil.rmtree(self.temp_dir)
         
     def get_paragraph_style_level(self, paragraph: Paragraph) -> tuple:
         """
@@ -239,6 +297,7 @@ def main():
         print(f"❌ 错误: 文件不存在 - {input_file}")
         return
     
+    converter = None
     try:
         # 创建转换器并执行转换
         converter = DocxToMarkdownConverter(input_file)
@@ -248,6 +307,10 @@ def main():
         print(f"❌ 转换失败: {str(e)}")
         import traceback
         traceback.print_exc()
+    finally:
+        # 清理临时文件
+        if converter:
+            converter.cleanup()
 
 
 if __name__ == "__main__":
