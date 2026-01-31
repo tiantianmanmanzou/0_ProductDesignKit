@@ -2,7 +2,12 @@
 # -*- coding: utf-8 -*-
 """
 DOCX to Markdown Converter
-将DOCX文档转换为Markdown格式，保留表格和标题层级关系
+将DOCX/DOC文档转换为Markdown格式，保留表格和标题层级关系
+
+支持格式：
+- .docx (Office Open XML)
+- .docm (启用宏的Word文档)
+- .doc (旧版Word二进制格式，需要系统支持textutil或libreoffice)
 """
 
 import os
@@ -10,11 +15,107 @@ import argparse
 import zipfile
 import tempfile
 import shutil
+import subprocess
+import platform
 from docx import Document
 from docx.oxml.text.paragraph import CT_P
 from docx.oxml.table import CT_Tbl
 from docx.table import _Cell, Table
 from docx.text.paragraph import Paragraph
+
+
+def convert_doc_to_docx(doc_path: str) -> str:
+    """
+    将旧版 .doc 文件转换为 .docx 格式（临时文件）
+    
+    支持的转换工具（按优先级）：
+    1. macOS: textutil (系统自带)
+    2. 跨平台: LibreOffice (需安装)
+    
+    Args:
+        doc_path: .doc 文件路径
+        
+    Returns:
+        临时 .docx 文件路径
+        
+    Raises:
+        RuntimeError: 如果没有可用的转换工具
+    """
+    # 创建临时目录
+    temp_dir = tempfile.mkdtemp()
+    temp_docx = os.path.join(temp_dir, "converted.docx")
+    
+    system = platform.system()
+    
+    # 方法1: macOS 使用 textutil
+    if system == "Darwin":
+        try:
+            result = subprocess.run(
+                ["textutil", "-convert", "docx", doc_path, "-output", temp_docx],
+                capture_output=True,
+                text=True,
+                timeout=60
+            )
+            if result.returncode == 0 and os.path.exists(temp_docx):
+                print(f"📎 使用 textutil 将 .doc 转换为 .docx")
+                return temp_docx
+        except (subprocess.TimeoutExpired, FileNotFoundError):
+            pass
+    
+    # 方法2: 尝试使用 LibreOffice (跨平台)
+    libreoffice_paths = []
+    if system == "Darwin":
+        libreoffice_paths = [
+            "/Applications/LibreOffice.app/Contents/MacOS/soffice",
+            "/usr/local/bin/soffice",
+        ]
+    elif system == "Linux":
+        libreoffice_paths = [
+            "/usr/bin/soffice",
+            "/usr/bin/libreoffice",
+        ]
+    elif system == "Windows":
+        libreoffice_paths = [
+            r"C:\Program Files\LibreOffice\program\soffice.exe",
+            r"C:\Program Files (x86)\LibreOffice\program\soffice.exe",
+        ]
+    
+    for soffice_path in libreoffice_paths:
+        if os.path.exists(soffice_path):
+            try:
+                result = subprocess.run(
+                    [
+                        soffice_path,
+                        "--headless",
+                        "--convert-to", "docx",
+                        "--outdir", temp_dir,
+                        doc_path
+                    ],
+                    capture_output=True,
+                    text=True,
+                    timeout=120
+                )
+                # LibreOffice 输出文件名基于原文件名
+                base_name = os.path.splitext(os.path.basename(doc_path))[0]
+                converted_file = os.path.join(temp_dir, f"{base_name}.docx")
+                if os.path.exists(converted_file):
+                    # 重命名为统一的临时文件名
+                    shutil.move(converted_file, temp_docx)
+                    print(f"📎 使用 LibreOffice 将 .doc 转换为 .docx")
+                    return temp_docx
+            except (subprocess.TimeoutExpired, FileNotFoundError):
+                continue
+    
+    # 清理临时目录
+    shutil.rmtree(temp_dir)
+    
+    raise RuntimeError(
+        "无法转换 .doc 文件：未找到可用的转换工具。\n"
+        "请安装以下任一工具：\n"
+        "  - macOS: 系统自带 textutil（应该已可用）\n"
+        "  - 跨平台: LibreOffice (https://www.libreoffice.org/)\n"
+        "或者使用 Microsoft Word 将文件另存为 .docx 格式后再转换。"
+    )
 
 
 def convert_docm_to_docx(docm_path: str) -> str:
@@ -54,25 +155,37 @@ def convert_docm_to_docx(docm_path: str) -> str:
 
 
 class DocxToMarkdownConverter:
-    """DOCX转Markdown转换器"""
+    """DOCX/DOC转Markdown转换器"""
     
     def __init__(self, docx_path: str):
         """
         初始化转换器
         
         Args:
-            docx_path: DOCX文件路径（支持DOCX和DOCM格式）
+            docx_path: 文档文件路径（支持 .docx、.docm、.doc 格式）
         """
         self.original_path = docx_path
         self.temp_dir = None
         self.temp_docx = None
         
-        # 检查是否为宏启用文档
+        # 获取文件扩展名
+        _, ext = os.path.splitext(docx_path.lower())
+        
+        # 处理旧版 .doc 格式
+        if ext == '.doc':
+            print(f"🔄 检测到旧版 .doc 格式，正在转换...")
+            self.temp_docx = convert_doc_to_docx(docx_path)
+            self.temp_dir = os.path.dirname(self.temp_docx)
+            self.doc = Document(self.temp_docx)
+            self.markdown_lines = []
+            return
+        
+        # 处理 .docx 和 .docm 格式
         try:
             self.doc = Document(docx_path)
         except ValueError as e:
             if 'macroEnabled' in str(e):
-                # 尝试转换为普通DOCX
+                # 尝试转换为普通DOCX（处理宏启用文档）
                 self.temp_docx = convert_docm_to_docx(docx_path)
                 self.temp_dir = os.path.dirname(self.temp_docx)
                 self.doc = Document(self.temp_docx)
@@ -272,13 +385,13 @@ def main():
     default_input_file = "/Users/zhangxy/1/1.docx"
 
     parser = argparse.ArgumentParser(
-        description="将DOCX文档转换为Markdown格式，保留表格和标题层级关系"
+        description="将Word文档转换为Markdown格式，保留表格和标题层级关系。支持 .docx、.docm、.doc 格式。"
     )
     parser.add_argument(
         "input_file",
         nargs="?",
         default=default_input_file,
-        help="输入 DOCX 文件路径（默认使用脚本内置示例文件）",
+        help="输入Word文件路径，支持 .docx/.docm/.doc 格式（默认使用脚本内置示例文件）",
     )
     parser.add_argument(
         "-o",

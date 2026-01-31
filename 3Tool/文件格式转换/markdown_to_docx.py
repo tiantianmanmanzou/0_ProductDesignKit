@@ -50,6 +50,42 @@ def set_chinese_font(run, font_name: str = '宋体'):
     run._element.rPr.rFonts.set(qn('w:eastAsia'), font_name)
 
 
+def parse_inline_formatting(text: str) -> List[Tuple[str, bool]]:
+    """
+    解析行内格式，返回 [(文本片段, 是否加粗), ...]。
+    
+    支持 **text** 格式的加粗。
+    """
+    result = []
+    # 匹配 **text** 格式
+    pattern = r'\*\*(.+?)\*\*'
+    
+    last_end = 0
+    for match in re.finditer(pattern, text):
+        # 添加匹配前的普通文本
+        if match.start() > last_end:
+            plain_text = text[last_end:match.start()]
+            if plain_text:
+                result.append((plain_text, False))
+        # 添加加粗文本
+        bold_text = match.group(1)
+        if bold_text:
+            result.append((bold_text, True))
+        last_end = match.end()
+    
+    # 添加最后剩余的普通文本
+    if last_end < len(text):
+        remaining = text[last_end:]
+        if remaining:
+            result.append((remaining, False))
+    
+    # 如果没有任何匹配，返回原文本
+    if not result:
+        result.append((text, False))
+    
+    return result
+
+
 def create_numbering(doc: Document):
     """创建多级自动编号并链接到标题样式."""
     from docx.oxml import parse_xml
@@ -257,23 +293,80 @@ def fix_numbering_after_save(docx_path: Path):
                 <w:suff w:val="space"/>
             </w:lvl>
         </w:abstractNum>
-        <!-- Bullet 编号定义 -->
+        <!-- Bullet 编号定义 - 使用 Word 内置项目符号格式 -->
         <w:abstractNum w:abstractNumId="1">
-            <w:multiLevelType w:val="multilevel"/>
+            <w:multiLevelType w:val="hybridMultilevel"/>
             <w:lvl w:ilvl="0">
                 <w:start w:val="1"/>
                 <w:numFmt w:val="bullet"/>
-                <w:lvlText w:val="&#x2022;"/>
+                <w:lvlText w:val="&#xF0B7;"/>
                 <w:lvlJc w:val="left"/>
                 <w:pPr>
-                    <w:ind w:left="480" w:hanging="0"/>
+                    <w:ind w:left="720" w:hanging="360"/>
                 </w:pPr>
                 <w:rPr>
-                    <w:rFonts w:eastAsia="宋体" w:ascii="Symbol" w:hAnsi="Symbol"/>
-                    <w:sz w:val="24"/>
-                    <w:color w:val="000000"/>
+                    <w:rFonts w:ascii="Symbol" w:hAnsi="Symbol" w:hint="default"/>
                 </w:rPr>
-                <w:suff w:val="space"/>
+            </w:lvl>
+            <w:lvl w:ilvl="1">
+                <w:start w:val="1"/>
+                <w:numFmt w:val="bullet"/>
+                <w:lvlText w:val="o"/>
+                <w:lvlJc w:val="left"/>
+                <w:pPr>
+                    <w:ind w:left="1440" w:hanging="360"/>
+                </w:pPr>
+                <w:rPr>
+                    <w:rFonts w:ascii="Courier New" w:hAnsi="Courier New" w:cs="Courier New" w:hint="default"/>
+                </w:rPr>
+            </w:lvl>
+            <w:lvl w:ilvl="2">
+                <w:start w:val="1"/>
+                <w:numFmt w:val="bullet"/>
+                <w:lvlText w:val="&#xF0A7;"/>
+                <w:lvlJc w:val="left"/>
+                <w:pPr>
+                    <w:ind w:left="2160" w:hanging="360"/>
+                </w:pPr>
+                <w:rPr>
+                    <w:rFonts w:ascii="Wingdings" w:hAnsi="Wingdings" w:hint="default"/>
+                </w:rPr>
+            </w:lvl>
+            <w:lvl w:ilvl="3">
+                <w:start w:val="1"/>
+                <w:numFmt w:val="bullet"/>
+                <w:lvlText w:val="&#xF0B7;"/>
+                <w:lvlJc w:val="left"/>
+                <w:pPr>
+                    <w:ind w:left="2880" w:hanging="360"/>
+                </w:pPr>
+                <w:rPr>
+                    <w:rFonts w:ascii="Symbol" w:hAnsi="Symbol" w:hint="default"/>
+                </w:rPr>
+            </w:lvl>
+            <w:lvl w:ilvl="4">
+                <w:start w:val="1"/>
+                <w:numFmt w:val="bullet"/>
+                <w:lvlText w:val="o"/>
+                <w:lvlJc w:val="left"/>
+                <w:pPr>
+                    <w:ind w:left="3600" w:hanging="360"/>
+                </w:pPr>
+                <w:rPr>
+                    <w:rFonts w:ascii="Courier New" w:hAnsi="Courier New" w:cs="Courier New" w:hint="default"/>
+                </w:rPr>
+            </w:lvl>
+            <w:lvl w:ilvl="5">
+                <w:start w:val="1"/>
+                <w:numFmt w:val="bullet"/>
+                <w:lvlText w:val="&#xF0A7;"/>
+                <w:lvlJc w:val="left"/>
+                <w:pPr>
+                    <w:ind w:left="4320" w:hanging="360"/>
+                </w:pPr>
+                <w:rPr>
+                    <w:rFonts w:ascii="Wingdings" w:hAnsi="Wingdings" w:hint="default"/>
+                </w:rPr>
             </w:lvl>
         </w:abstractNum>
         <w:num w:numId="1">
@@ -335,7 +428,7 @@ def add_paragraph_with_style(
     bold: bool = False,
     color: RGBColor = RGBColor(0, 0, 0)
 ):
-    """添加带样式的段落。"""
+    """添加带样式的段落，支持行内 **加粗** 格式。"""
     
     # 根据类型选择样式（使用预设标题样式以保留大纲级别）
     style_map = {
@@ -350,7 +443,21 @@ def add_paragraph_with_style(
     }
 
     style = style_map.get(style_type, 'Normal')
-    para = doc.add_paragraph(content, style=style)
+    
+    # 创建空段落，然后手动添加带格式的 run
+    para = doc.add_paragraph(style=style)
+    
+    # 解析行内格式（**加粗**）
+    segments = parse_inline_formatting(content)
+    
+    for text, is_inline_bold in segments:
+        run = para.add_run(text)
+        run.font.size = Pt(font_size)
+        run.font.color.rgb = color
+        # 如果是标题本身加粗，或者是行内加粗标记，都设置为加粗
+        run.font.bold = bold or is_inline_bold
+        run.font.italic = False  # 覆盖Heading 4自带斜体
+        set_chinese_font(run, font_name)
 
     # 为列表段落手动添加 numPr
     if style_type == 'list':
@@ -364,17 +471,14 @@ def add_paragraph_with_style(
         # 创建新的 numPr
         numPr = OxmlElement('w:numPr')
         para._element.pPr.append(numPr)
+        # 设置级别 ilvl（必须在 numId 之前）
+        ilvl = OxmlElement('w:ilvl')
+        ilvl.set(qn('w:val'), '0')  # 第一级
+        numPr.append(ilvl)
+        # 设置 numId
         numId = OxmlElement('w:numId')
-        numId.set(qn('w:val'), '1')  # bullet 编号
+        numId.set(qn('w:val'), '1')  # bullet 编号（使用 Word 内置项目符号）
         numPr.append(numId)
-    
-    # 设置字体样式
-    for run in para.runs:
-        run.font.size = Pt(font_size)
-        run.font.color.rgb = color
-        run.font.bold = bold
-        run.font.italic = False  # 覆盖Heading 4自带斜体
-        set_chinese_font(run, font_name)
 
     # 所有标题段后间距为0，正文段前段后间距为0
     para_format = para.paragraph_format
