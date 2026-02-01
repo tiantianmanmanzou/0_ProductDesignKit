@@ -47,23 +47,8 @@ def convert_doc_to_docx(doc_path: str) -> str:
     temp_docx = os.path.join(temp_dir, "converted.docx")
     
     system = platform.system()
-    
-    # 方法1: macOS 使用 textutil
-    if system == "Darwin":
-        try:
-            result = subprocess.run(
-                ["textutil", "-convert", "docx", doc_path, "-output", temp_docx],
-                capture_output=True,
-                text=True,
-                timeout=60
-            )
-            if result.returncode == 0 and os.path.exists(temp_docx):
-                print(f"📎 使用 textutil 将 .doc 转换为 .docx")
-                return temp_docx
-        except (subprocess.TimeoutExpired, FileNotFoundError):
-            pass
-    
-    # 方法2: 尝试使用 LibreOffice (跨平台)
+
+    # 方法1: 优先使用 LibreOffice (保留样式更完整)
     libreoffice_paths = []
     if system == "Darwin":
         libreoffice_paths = [
@@ -112,6 +97,21 @@ def convert_doc_to_docx(doc_path: str) -> str:
                     return temp_docx
             except (subprocess.TimeoutExpired, FileNotFoundError):
                 continue
+
+    # 方法2: macOS 使用 textutil（样式保留较弱，作为兜底）
+    if system == "Darwin":
+        try:
+            result = subprocess.run(
+                ["textutil", "-convert", "docx", doc_path, "-output", temp_docx],
+                capture_output=True,
+                text=True,
+                timeout=60
+            )
+            if result.returncode == 0 and os.path.exists(temp_docx):
+                print(f"📎 使用 textutil 将 .doc 转换为 .docx")
+                return temp_docx
+        except (subprocess.TimeoutExpired, FileNotFoundError):
+            pass
     
     # 清理临时目录
     shutil.rmtree(temp_dir)
@@ -164,7 +164,7 @@ def convert_docm_to_docx(docm_path: str) -> str:
 class DocxToMarkdownConverter:
     """DOCX/DOC转Markdown转换器"""
     
-    def __init__(self, docx_path: str, use_heuristic_heading: bool = True):
+    def __init__(self, docx_path: str, use_heuristic_heading: bool = False):
         """
         初始化转换器
         
@@ -448,6 +448,11 @@ def main():
         default=None,
         help="输出 Markdown 文件路径（默认与输入文件同目录同名，扩展名为 .md）",
     )
+    parser.add_argument(
+        "--heuristic-heading",
+        action="store_true",
+        help="启用基于字体大小/加粗的标题推断（可能导致标题层级与原文不一致）",
+    )
     args = parser.parse_args()
 
     input_file = args.input_file
@@ -461,7 +466,10 @@ def main():
     converter = None
     try:
         # 创建转换器并执行转换
-        converter = DocxToMarkdownConverter(input_file)
+        converter = DocxToMarkdownConverter(
+            input_file,
+            use_heuristic_heading=args.heuristic_heading
+        )
         converter.save_to_file(output_file)
         
     except Exception as e:
