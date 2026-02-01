@@ -17,6 +17,7 @@ import tempfile
 import shutil
 import subprocess
 import platform
+import re
 from docx import Document
 from docx.oxml.text.paragraph import CT_P
 from docx.oxml.table import CT_Tbl
@@ -79,6 +80,12 @@ def convert_doc_to_docx(doc_path: str) -> str:
             r"C:\Program Files\LibreOffice\program\soffice.exe",
             r"C:\Program Files (x86)\LibreOffice\program\soffice.exe",
         ]
+
+    # 尝试从 PATH 中获取 soffice/libreoffice
+    for candidate in ("soffice", "libreoffice"):
+        found = shutil.which(candidate)
+        if found:
+            libreoffice_paths.insert(0, found)
     
     for soffice_path in libreoffice_paths:
         if os.path.exists(soffice_path):
@@ -157,16 +164,18 @@ def convert_docm_to_docx(docm_path: str) -> str:
 class DocxToMarkdownConverter:
     """DOCX/DOC转Markdown转换器"""
     
-    def __init__(self, docx_path: str):
+    def __init__(self, docx_path: str, use_heuristic_heading: bool = True):
         """
         初始化转换器
         
         Args:
             docx_path: 文档文件路径（支持 .docx、.docm、.doc 格式）
+            use_heuristic_heading: 是否启用基于字体大小/加粗的标题推断
         """
         self.original_path = docx_path
         self.temp_dir = None
         self.temp_docx = None
+        self.use_heuristic_heading = use_heuristic_heading
         
         # 获取文件扩展名
         _, ext = os.path.splitext(docx_path.lower())
@@ -199,6 +208,71 @@ class DocxToMarkdownConverter:
         if self.temp_dir and os.path.exists(self.temp_dir):
             shutil.rmtree(self.temp_dir)
         
+    def _extract_heading_level_from_text(self, style_text: str) -> int:
+        """从样式名称或ID中提取标题级别"""
+        if not style_text:
+            return 0
+        text = style_text.lower()
+        match = re.search(r"(heading|标题)\s*([1-6])", text)
+        if match:
+            return int(match.group(2))
+        match = re.search(r"(heading|标题)([1-6])", text)
+        if match:
+            return int(match.group(2))
+        return 0
+
+    def _get_outline_level_from_ppr(self, ppr) -> int:
+        """从段落属性中获取 outline level (0-based)"""
+        try:
+            outline_lvl = getattr(ppr, "outlineLvl", None)
+            if outline_lvl is None:
+                return 0
+            val = getattr(outline_lvl, "val", None)
+            if val is None:
+                return 0
+            level = int(val)
+            if 0 <= level <= 5:
+                return level + 1
+        except (ValueError, TypeError):
+            return 0
+        return 0
+
+    def _get_heading_level_from_style(self, paragraph: Paragraph) -> int:
+        """优先从样式名称/ID中提取标题级别"""
+        style = paragraph.style
+        if not style:
+            return 0
+        level = self._extract_heading_level_from_text(style.name)
+        if level:
+            return level
+        level = self._extract_heading_level_from_text(getattr(style, "style_id", ""))
+        if level:
+            return level
+        # 兼容部分样式仅设置了 outline level
+        try:
+            style_ppr = getattr(style._element, "pPr", None)
+            if style_ppr is not None:
+                level = self._get_outline_level_from_ppr(style_ppr)
+                if level:
+                    return level
+        except Exception:
+            return 0
+        return 0
+
+    def _get_heading_level_from_paragraph(self, paragraph: Paragraph) -> int:
+        """从段落属性或样式中获取标题级别"""
+        # 1) 先看段落自身 outline level
+        try:
+            ppr = paragraph._p.pPr
+            if ppr is not None:
+                level = self._get_outline_level_from_ppr(ppr)
+                if level:
+                    return level
+        except Exception:
+            pass
+        # 2) 再看样式
+        return self._get_heading_level_from_style(paragraph)
+
     def get_paragraph_style_level(self, paragraph: Paragraph) -> tuple:
         """
         获取段落的样式级别
@@ -209,51 +283,25 @@ class DocxToMarkdownConverter:
         Returns:
             (is_heading, level): 是否为标题，标题级别(1-6)
         """
-        style_name = paragraph.style.name.lower()
-        
-        # 检查是否为标题样式
-        if 'heading' in style_name:
-            # 提取级别数字
-            if 'heading 1' in style_name or style_name == 'heading1':
-                return (True, 1)
-            elif 'heading 2' in style_name or style_name == 'heading2':
-                return (True, 2)
-            elif 'heading 3' in style_name or style_name == 'heading3':
-                return (True, 3)
-            elif 'heading 4' in style_name or style_name == 'heading4':
-                return (True, 4)
-            elif 'heading 5' in style_name or style_name == 'heading5':
-                return (True, 5)
-            elif 'heading 6' in style_name or style_name == 'heading6':
-                return (True, 6)
-        
-        # 检查中文标题样式
-        if '标题' in style_name:
-            if '标题 1' in style_name or style_name == '标题1':
-                return (True, 1)
-            elif '标题 2' in style_name or style_name == '标题2':
-                return (True, 2)
-            elif '标题 3' in style_name or style_name == '标题3':
-                return (True, 3)
-            elif '标题 4' in style_name or style_name == '标题4':
-                return (True, 4)
-            elif '标题 5' in style_name or style_name == '标题5':
-                return (True, 5)
-            elif '标题 6' in style_name or style_name == '标题6':
-                return (True, 6)
-        
+        level = self._get_heading_level_from_paragraph(paragraph)
+        if level:
+            return (True, level)
+
+        if not self.use_heuristic_heading:
+            return (False, 0)
+
         # 基于格式判断标题级别（字体大小和加粗）
         if paragraph.runs:
             first_run = paragraph.runs[0]
             is_bold = first_run.font.bold
             font_size = first_run.font.size
-            
+
             # 如果段落加粗且字体较大，判断为标题
             if is_bold and font_size:
                 # 字体大小单位是 twips (1/20 point)
                 # 转换为磅值进行判断
-                size_pt = font_size.pt if hasattr(font_size, 'pt') else font_size / 12700
-                
+                size_pt = font_size.pt if hasattr(font_size, "pt") else font_size / 12700
+
                 # 根据字体大小判断标题级别
                 if size_pt >= 18:  # 一级标题
                     return (True, 1)
@@ -267,7 +315,7 @@ class DocxToMarkdownConverter:
                     return (True, 5)
                 elif size_pt >= 8:  # 六级标题
                     return (True, 6)
-        
+
         return (False, 0)
     
     def convert_paragraph(self, paragraph: Paragraph) -> str:
