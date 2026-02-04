@@ -19,6 +19,7 @@ import subprocess
 import platform
 import re
 from docx import Document
+from docx.oxml.ns import qn
 from docx.oxml.text.paragraph import CT_P
 from docx.oxml.table import CT_Tbl
 from docx.table import _Cell, Table
@@ -163,7 +164,25 @@ def convert_docm_to_docx(docm_path: str) -> str:
 
 class DocxToMarkdownConverter:
     """DOCX/DOC转Markdown转换器"""
-    
+
+    XML_NAMESPACES = {
+        "a": "http://schemas.openxmlformats.org/drawingml/2006/main",
+        "r": "http://schemas.openxmlformats.org/officeDocument/2006/relationships",
+        "v": "urn:schemas-microsoft-com:vml",
+    }
+
+    IMAGE_EXT_BY_CONTENT_TYPE = {
+        "image/png": ".png",
+        "image/jpeg": ".jpg",
+        "image/jpg": ".jpg",
+        "image/gif": ".gif",
+        "image/bmp": ".bmp",
+        "image/tiff": ".tif",
+        "image/x-emf": ".emf",
+        "image/x-wmf": ".wmf",
+        "image/svg+xml": ".svg",
+    }
+
     def __init__(self, docx_path: str, use_heuristic_heading: bool = False):
         """
         初始化转换器
@@ -176,6 +195,13 @@ class DocxToMarkdownConverter:
         self.temp_dir = None
         self.temp_docx = None
         self.use_heuristic_heading = use_heuristic_heading
+        self.output_dir = None
+        self.output_basename = None
+        self.image_dir_name = None
+        self.image_output_dir = None
+        self.image_rel_dir = None
+        self.image_map = {}
+        self.image_counter = 1
         
         # 获取文件扩展名
         _, ext = os.path.splitext(docx_path.lower())
@@ -207,6 +233,122 @@ class DocxToMarkdownConverter:
         """清理临时文件"""
         if self.temp_dir and os.path.exists(self.temp_dir):
             shutil.rmtree(self.temp_dir)
+
+    def _set_output_context(self, output_path: str):
+        """设置输出上下文（用于图片导出）"""
+        output_dir = os.path.dirname(output_path) or "."
+        output_basename = os.path.splitext(os.path.basename(output_path))[0]
+        image_dir_name = f"{output_basename}_images"
+
+        self.output_dir = output_dir
+        self.output_basename = output_basename
+        self.image_dir_name = image_dir_name
+        self.image_output_dir = os.path.join(output_dir, image_dir_name)
+        self.image_rel_dir = os.path.relpath(self.image_output_dir, output_dir)
+        self.image_map = {}
+        self.image_counter = 1
+
+    def _ensure_image_output_dir(self) -> bool:
+        """确保图片输出目录存在（延迟创建）"""
+        if not self.image_output_dir:
+            return False
+        if not os.path.exists(self.image_output_dir):
+            os.makedirs(self.image_output_dir, exist_ok=True)
+        return True
+
+    def _get_image_extension(self, part) -> str:
+        """获取图片文件扩展名"""
+        partname = str(getattr(part, "partname", ""))
+        ext = os.path.splitext(partname)[1].lower()
+        if ext:
+            return ext
+        content_type = getattr(part, "content_type", "")
+        return self.IMAGE_EXT_BY_CONTENT_TYPE.get(content_type, ".img")
+
+    def _save_image_from_rid(self, r_id: str) -> str:
+        """根据关系ID导出图片，返回相对路径"""
+        if not r_id:
+            return "", ""
+        rel = self.doc.part.rels.get(r_id)
+        if rel is None or rel.is_external:
+            return "", ""
+        part = rel.target_part
+        if not hasattr(part, "blob"):
+            return "", ""
+        part_key = str(getattr(part, "partname", r_id))
+        if part_key in self.image_map:
+            image_info = self.image_map[part_key]
+            return image_info.get("path", ""), image_info.get("label", "")
+
+        if not self._ensure_image_output_dir():
+            return "", ""
+
+        ext = self._get_image_extension(part)
+        index = self.image_counter
+        filename = f"image_{index:03d}{ext}"
+        label = f"图{index:03d}"
+        self.image_counter += 1
+
+        abs_path = os.path.join(self.image_output_dir, filename)
+        with open(abs_path, "wb") as f:
+            f.write(part.blob)
+
+        rel_path = os.path.join(self.image_rel_dir, filename).replace(os.sep, "/")
+        self.image_map[part_key] = {"path": rel_path, "label": label}
+        return rel_path, label
+
+    def _get_image_rids_from_run(self, run) -> list:
+        """从run中提取图片关系ID"""
+        r_ids = []
+        blip_tag = qn("a:blip")
+        vml_tag = "{urn:schemas-microsoft-com:vml}imagedata"
+        for node in run._element.iter():
+            if node.tag == blip_tag:
+                r_id = node.get(qn("r:embed"))
+                if r_id:
+                    r_ids.append(r_id)
+            elif node.tag == vml_tag:
+                r_id = node.get(qn("r:id"))
+                if r_id:
+                    r_ids.append(r_id)
+        return r_ids
+
+    def _collect_run_tokens(self, paragraph: Paragraph) -> list:
+        """收集段落中的文本与图片，保持顺序"""
+        tokens = []
+        for run in paragraph.runs:
+            if run.text:
+                tokens.append(("text", run.text))
+            for r_id in self._get_image_rids_from_run(run):
+                rel_path, label = self._save_image_from_rid(r_id)
+                if rel_path:
+                    tokens.append(("image", rel_path, label))
+        return tokens
+
+    def _tokens_to_text(self, tokens: list) -> str:
+        """将文本/图片tokens转换为Markdown行内文本"""
+        if not tokens:
+            return ""
+        parts = []
+        for idx, token in enumerate(tokens):
+            kind = token[0]
+            if kind == "text":
+                parts.append(token[1])
+                continue
+            if parts and not parts[-1].endswith((" ", "\n", "\t")):
+                parts.append(" ")
+            path = token[1]
+            label = token[2] if len(token) > 2 else "image"
+            parts.append(f"![{label}]({path})")
+            if idx + 1 < len(tokens):
+                next_token = tokens[idx + 1]
+                if next_token[0] == "text" and not next_token[1].startswith((" ", "\n", "\t")):
+                    parts.append(" ")
+        return "".join(parts)
+
+    def _image_markdown(self, path: str, label: str) -> str:
+        """生成带编号的图片Markdown"""
+        return f"![{label}]({path})"
         
     def _extract_heading_level_from_text(self, style_text: str) -> int:
         """从样式名称或ID中提取标题级别"""
@@ -328,18 +470,29 @@ class DocxToMarkdownConverter:
         Returns:
             Markdown格式的文本
         """
-        text = paragraph.text.strip()
-        if not text:
+        tokens = self._collect_run_tokens(paragraph)
+        if not tokens:
             return ""
-        
+
         is_heading, level = self.get_paragraph_style_level(paragraph)
         
         if is_heading:
             # 标题格式
-            return f"{'#' * level} {text}\n"
-        else:
-            # 普通正文
-            return f"{text}\n"
+            heading_text = paragraph.text.strip()
+            if heading_text:
+                md = f"{'#' * level} {heading_text}\n"
+                image_tokens = [token for token in tokens if token[0] == "image"]
+                if image_tokens:
+                    md += "\n".join(
+                        [self._image_markdown(token[1], token[2]) for token in image_tokens]
+                    ) + "\n"
+                return md
+
+        # 普通正文
+        content = self._tokens_to_text(tokens).strip()
+        if not content:
+            return ""
+        return f"{content}\n"
     
     def convert_table(self, table: Table) -> str:
         """
@@ -360,8 +513,16 @@ class DocxToMarkdownConverter:
         for row_idx, row in enumerate(table.rows):
             row_cells = []
             for cell in row.cells:
-                # 获取单元格文本，处理多行内容
-                cell_text = cell.text.strip().replace('\n', '<br>')
+                # 获取单元格文本，处理多行内容（含图片）
+                cell_parts = []
+                for paragraph in cell.paragraphs:
+                    tokens = self._collect_run_tokens(paragraph)
+                    if not tokens:
+                        continue
+                    cell_text = self._tokens_to_text(tokens).strip()
+                    if cell_text:
+                        cell_parts.append(cell_text)
+                cell_text = "<br>".join(cell_parts)
                 row_cells.append(cell_text)
             
             # 添加表格行
@@ -409,6 +570,7 @@ class DocxToMarkdownConverter:
         Args:
             output_path: 输出文件路径
         """
+        self._set_output_context(output_path)
         markdown_content = self.convert()
         
         # 确保输出目录存在
@@ -426,6 +588,7 @@ class DocxToMarkdownConverter:
         print(f"📊 文档统计:")
         print(f"   - 段落数: {len(self.doc.paragraphs)}")
         print(f"   - 表格数: {len(self.doc.tables)}")
+        print(f"   - 图片数: {len(self.image_map)}")
 
 
 def main():
